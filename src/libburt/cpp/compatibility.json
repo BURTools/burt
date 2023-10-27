@@ -1,0 +1,20 @@
+{
+    "win" : {
+        "toolsetVersion" : "143"
+    },
+    "linux" : {
+        
+    },
+    "mac" : {
+
+    },
+    "ios" : {
+
+    },
+    "android" : {
+
+    },
+    "wasm" : {
+
+    }
+}

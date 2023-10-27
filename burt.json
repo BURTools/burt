@@ -1,0 +1,35 @@
+{
+    "author" :{
+        "name" : "Phillip Doup",
+        "email" : "douppc@gmail.com",
+        "url" : "http://github.com/douppc"
+    },
+    "repository" : {
+        "url" : "https://github.com/BURTools/burt.git"
+    },
+    "packages" : [
+        {
+            "name" : "burt",
+            "description" : "Build Use and Release Tools - a build system for compiled programming languages",
+            "version" : "0.0",
+            "plugins" : [
+                {
+                    "name" : "burt",
+                    "commands" : {
+                        "test" : {
+                            "briefHelp": "a test command",
+                            "args": {
+                                "a" : {
+                                    "type" : "integer"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "toolDependencies" : {
+        "burt" : "1.2.3"
+    }
+}

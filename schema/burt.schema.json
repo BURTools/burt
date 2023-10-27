@@ -1,0 +1,386 @@
+{
+    "$schema" : "https://json-schema.org/draft-07/schema",
+    "$id" : "https://raw.githubusercontent.com/BURTools/burt/main/schema/burt.schema.json",
+    "title" : "burt.json",
+    "description" : "Schema for the main JSON file used by the Burt toolset.",
+    "type" : "object",
+    "oneOf" : [
+        { "$ref" : "#/$defs/module" },
+        { "$ref" : "#/$defs/package" },
+        { "$ref" : "#/$defs/project" }
+    ],
+    "$defs" : {
+        "command" : {
+            "oneOf" : [
+                { "$ref" : "#/$defs/commandAlias" },
+                { "$ref" : "#/$defs/commandDef" }
+            ]
+        },
+        "commands" : {
+            "patternProperties" : {
+                "[a-z0-9-_]+" : { "$ref" : "#/$defs/command" }
+            },
+            "additionalProperties" : false
+        },
+        "commandAlias" : {
+            "type" : "string",
+            "minLength" : 1
+        },
+        "commandArg" : {
+            "type" : "object",
+            "properties" : {
+                "multiple" : { "type" : "boolean" },
+                "type" : { "$ref" : "#/$defs/commandArgType" },
+                "values" : { "$ref" : "#/$defs/commandArgValues" }
+            },
+            "oneOf" : [
+                {
+                    "properties" : {
+                        "type" : { 
+                            "not" : { 
+                                "enum" : ["enum"] 
+                            }
+                        }
+                    }
+                },
+                {
+                    "required" : [ "values" ]
+                }
+            ],
+            "required" : [ "type" ]
+        },
+        "commandArgs" : {
+            "type" : "object",
+            "patternProperties" : {
+                "[a-z][a-zA-Z0-9_]*" : { "$ref" : "#/$defs/commandArg" }
+            },
+            "additionalProperties" : false
+        },
+        "commandArgType" : {
+            "type" : "string",
+            "enum" : [ "enum", "integer", "number", "string" ]
+        },
+        "commandArgValues" : {
+            "type" : "array",
+            "items" : { "type" : "string", "minLength" : 1 },
+            "minItems" : 1
+        },
+        "commandDef" : {
+            "properties" : {
+                "args" : { "$ref" : "#/$defs/commandArgs" },
+                "briefHelp" : { "type" : "string" },
+                "examples" : { "$ref" : "#/$defs/commandExamples" },
+                "longHelp" : { "type" : "string" },
+                "options" : { "$ref" : "#/$defs/commandOptions" }
+            },
+            "required" : [ "briefHelp" ]
+        },
+        "commandExample" : {
+            "properties" : {
+                "name" : { "type" : "string", "minLength" : 1 },
+                "description" : { "type" : "string" },
+                "options" : { "type" : "array", "items" : { "type" : "string" }}
+            },
+            "required" : [ "name" ]
+        },
+        "commandExamples" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/commandExample" }
+        },
+        "commandOption" : {
+            "properties" : {
+                "help" : { "type" : "string", "minLength" : 1 },
+                "longSwitch" : { "type" : "string", "minLength" : 2 },
+                "multiple" : { "type" : "boolean" },
+                "required" : { "type" : "boolean" },
+                "shortSwitch" : { "type" : "string", "minLength" : 1, "maxLength" : 1 },
+                "type" : { "$ref" : "#/$defs/commandOptionType" },
+                "values" : { "$ref" : "#/$defs/commandOptionValues" }
+            },
+            "oneOf" : [
+                {
+                    "properties" : {
+                        "type" : { 
+                            "not" : { 
+                                "enum" : ["enum"] 
+                            }
+                        }
+                    }
+                },
+                {
+                    "required" : [ "values" ]
+                }
+            ],
+            "required" : [ "help" , "switches" ]
+        },
+        "commandOptions" : {
+            "patternProperties" : {
+                "[a-z0-9-_]" : { "$ref" : "#/$defs/commandOption" }
+            },
+            "additionalProperties" : false
+        },
+        "commandOptionType" : {
+            "type" : "string",
+            "enum" : [ "boolean", "enum", "integer", "number", "string" ]
+        },
+        "commandOptionValue" : {
+            "type" : "string", 
+            "minLength" : 1
+        },
+        "commandOptionValues" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/commandOptionValue" }
+        },
+        "condition" : {
+            "type" : "object",
+            "properties" : {
+                "allOf" : { "$ref" : "#/$defs/conditions" },
+                "anyOf" : { "$ref" : "#/$defs/conditions" },
+                "hostProfile" : { "$ref" : "#/$defs/profileCondition" },
+                "not" : { "$ref" : "#/$defs/condition" },
+                "oneOf" : { "$ref" : "#/$defs/conditions" },
+                "targetProfile" : { "$ref" : "#/$defs/profileCondition" }
+            },
+            "additionalProperties" : false
+        },
+        "conditions" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/condition" }
+        },
+        "configOption" : {
+
+        },
+        "contact" : {
+            "oneOf" : [
+                { "$ref" : "#/$defs/contactObj"},
+                { "type" : "string"}
+            ]
+        },
+        "contacts" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/contact" }
+        },
+        "contactObj" : {
+            "type" : "object",
+            "properties" : {
+                "email" : { "format" : "email" },
+                "name" : { "$ref" : "#/$defs/contactName" },
+                "url" : { "format" : "uri" }
+            },
+            "required" : [ "name" ]
+        },
+        "contactName" : {
+            "type" : "string",
+            "minLength" : 1
+        },
+        "cpuArchitecture" : {
+            "enum" : ["arm32", "arm64", "x86", "x86_64" ]
+        },
+        "cpuArchitectures" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/cpuArchitecture" }
+        },
+        "credits" : {
+            "type" : "object",
+            "properties" : {
+                "author" : { "$ref" : "#/$defs/contact" },
+                "contributors" : { "$ref" : "#/$defs/contributors" },
+                "license" : { "$ref" : "#/$defs/license" }
+            }
+        },
+        "dependency" : {
+
+        },
+        "dependencies" : {
+        },
+        "function" : {
+
+        },
+        "homepage" : {
+            "type" : "string", 
+            "format" : "uri" 
+        },
+        "keywords" : {
+
+        },
+        "license" : {
+            "$comment" : "This should be SPDX license expressions.",
+            "type" : "string",
+            "minLength" : 1
+        },
+        "majorMinorVer" : {
+            "$comment" : "Allows just the MAJOR and MINOR of the semver. The patch and suffix will be computed automatically",
+            "type" : "string",
+            "pattern" : "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+        },
+        "module" : {
+            "properties" : {
+                "x" : {}
+            },
+            "required" : ["x"],
+            "additionalProperties" : false
+        },
+        "modules" : {
+
+        },
+        "operatingSystem" : {
+            "enum" : ["linux", "macos", "windows"]
+        },
+        "operatingSystems" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/operatingSystem" }
+        },
+        "package" : {
+            "type" : "object",
+            "properties" : {
+                "author" : { "$ref" : "#/$defs/contact" },
+                "contributors" : { "$ref" : "#/$defs/contacts" },
+                "dependencies" : { "$ref" : "#/$defs/dependencies" },
+                "devDependencies" : { "$ref" : "#/$defs/devDependencies" },
+                "description" : { "type" : "string" },
+                "homepage" : { "$ref" : "#/$defs/homepage" },
+                "imported" : { "type" : "boolean" },
+                "keywords" : { "$ref" : "#/$defs/keywords" },
+                "license" : { "$ref" : "#/$defs/license" },
+                "modules" : { "$ref" : "#/$defs/modules" },
+                "name" : { "$ref" : "#/$defs/packageName" },
+                "profiles" : { "$ref" : "#/$defs/profiles" },
+                "rules" : { "$ref" : "#/$defs/packageRules" },
+                "toolDependencies" : { "$ref" : "#/$defs/dependencies" },
+                "version" : { "$ref" : "#/$defs/packageVersion" }
+            },
+            "required" : ["name", "version"],
+            "additionalProperties" : false
+        },
+        "packages" : {
+            "type" : "array",
+            "items" : { 
+                "oneOf" : [
+                    { "$ref" : "#/$defs/package" },
+                    { "$ref" : "#/$defs/path" }
+                ]
+            }
+        },
+        "packageName" : {
+            "type" : "string",
+            "minLength" : 2,
+            "maxLength" : 50,
+            "pattern" : "^[a-zA-Z0-9_][a-zA-Z0-9_\\+\\.-]{1,49}$"
+        },
+        "packageRule" : {
+
+        },
+        "packageRules" : {
+
+        },
+        "packageVersion" : {
+            "oneOf" : [
+                { "$ref" : "#/$defs/semver" },
+                { "$ref" : "#/$defs/majorMinorVer" }
+            ]
+        },
+        "path" : {
+            "$comment" : "This will get validated at runtime to see if it matches an valid path.",
+            "type" : "string",
+            "minLength" : 1
+        },
+        "plugin" : {
+            "type" : "object",
+            "properties" : {
+                "commands" : { "$ref" : "#/$defs/commands" },
+                "description" : { "type" : "string" },
+                "name" : { "$ref" : "#/$defs/packageName" }
+            },
+            "required" : [ "name" ]
+        },
+        "plugins" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/plugin" }
+        },
+        "profiles" : {
+
+        },
+        "profileCondition" : {
+            "type" : "object",
+            "properties" : {
+                "architectures" : { "$ref" : "#/$defs/architectures" },
+                "operatingSystems" : { "$ref" : "#/$defs/operatingSystems" }
+            },
+            "additionalProperties" : false
+        },
+        "project" : {
+            "type" : "object",
+            "properties": {
+                "author" : { "$ref" : "#/$defs/contact"},
+                "contributors" : { "$ref" : "#/$defs/contributors" },
+                "homepage" : { "$ref" : "#/$defs/homepage" },
+                "license" : { "$ref" : "#/$defs/license" },
+                "packages" : { "$ref" : "#/$defs/packages" },
+                "repository" : { "$ref" : "#/$defs/repository" },
+                "rules" : { "$ref" : "#/$defs/projectRules" },
+                "subprojects" : { "$ref" : "#/$defs/subprojects" },
+                "toolDependencies" : { "$ref" : "#/$defs/dependencies"}
+            },
+            "required" : ["packages", "repository", "toolDependencies"],
+            "additionalProperties" : false
+        },
+        "projectRule" : {
+            "type" : "object",
+            "properties" : {
+                "condition" : { "$ref" : "#/$defs/condition" },
+                "continue" : { "type" : "boolean" },
+                "license" : { "$ref" : "#/$defs/license" },
+                "packages" : { "$ref" : "#/$defs/packages" },
+                "subprojects" : { "$ref" : "#/$defs/subprojects" },
+                "toolDependencies" : { "$ref" : "#/$defs/toolDependencies"}
+            }
+        },
+        "projectRules" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/projectRule" }
+        },
+        "repository" : {
+            "oneOf" : [
+                { "type" : "string", "format" : "uri" },
+                { "$ref" : "#/$defs/repositoryDef" }
+            ]
+        },
+        "repositoryDef" : {
+            "type" : "object",
+            "properties" : {
+                "mainBranch" : { "type" : "string" },
+                "featureBranchPattern" : { "format" : "regex" },
+                "releaseBranchPattern" : { "format" : "regex" },
+                "type" : { "$ref" : "#/$defs/repositoryType" },
+                "url" : { "format" : "uri" }
+            },
+            "required" : [ "url" ]
+        },
+        "relativePath" : {
+            "$comment" : "This will get validated as a correct path at runtime, so no need for a pattern.",
+            "type" : "string",
+            "minLength" : 1
+        },
+        "relativePathList" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/relativePath" }
+        },
+        "repositoryType" : {
+            "$comment" : "The actual types supported will be determined at runtime, but it needs to be non-empty.",
+            "type" : "string",
+            "minLength" : 1
+        },
+        "semver" : {
+            "$comment" : "Conforms to the semver specification at https://semver.org",
+            "type" : "string",
+            "pattern" : "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+        },
+        "subprojects" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/path" }
+        },
+        "toolDependency" : {
+            "type" : "object"
+        }
+    }
+}

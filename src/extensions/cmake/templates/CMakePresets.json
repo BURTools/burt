@@ -1,0 +1,73 @@
+{
+    "version" : 1,
+    "cmakeMinimumRequired" : {
+        "major" : 3,
+        "minor" : 19,
+        "patch" : 0
+    },
+    "configurePresets" : [
+        {
+            "name" : "base",
+            "hidden" : true,
+            "binaryDir" : ".burt/${sourceDir}"
+        },
+        {
+            "name" : "win",
+            "hidden" : true
+        },
+        {
+            "name" : "vs",
+            "hidden" : true,
+            "inherits" : [ "vs2022" ]
+        },
+        {
+            "name" : "vs2022",
+            "hidden" : true,
+            "generator" : "Visual Studio 17 2022"
+        },
+        {
+            "name" : "ninja",
+            "hidden" : true
+        },
+        {
+            "name" : "x64",
+            "hidden" : true
+        },
+        {
+            "name" : "release",
+            "hidden" : true
+        },
+        {
+            "name" : "reldeb",
+            "hidden" : true
+        },
+        {
+            "name" : "debug",
+            "hidden" : true
+        },
+        {
+            "name" : "win-vs-x64-release",
+            "inherits" : [ "win", "vs", "x64", "release" ]
+        },
+        {
+            "name" : "win-vs-x64-reldeb",
+            "inherits" : ["win", "vs", "x64", "reldeb" ]
+        },
+        {
+            "name" : "win-vs-x64-debug",
+            "inherits": [ "win", "vs", "x64", "debug" ]
+        },
+        {
+            "name" : "win-ninja-x64-release",
+            "inherits" : [ "win", "ninja", "x64", "release" ]
+        },
+        {
+            "name" : "win-ninja-x64-reldeb",
+            "inherits" : [ "win", "ninja", "x64", "reldeb" ]
+        },
+        {
+            "name" : "win-ninja-x64-debug",
+            "inherits" : [ "win", "ninja", "x64", "debug" ]
+        }
+    ]
+}

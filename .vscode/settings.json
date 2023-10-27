@@ -1,0 +1,11 @@
+{
+    "cmake.configureOnOpen": false,
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "/burt.json"
+            ],
+            "url": "./schema/burt.schema.json"
+        }
+    ]
+}
