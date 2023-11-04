@@ -43,7 +43,7 @@ Control Systems](./Compatibility#version-control-systems). By default, the follo
 
 ### Package Provider
 
-### Package Conditions
+### Package Rules
 
 ### Package Dependencies
 
@@ -57,19 +57,23 @@ Control Systems](./Compatibility#version-control-systems). By default, the follo
 
 ### Module
 
-### Module Conditions
+### Module Rules
 
 ### Module Dependencies
 
 ### Module Sources
 
-### Plugin
+### Extensions
 
-#### Commands
+#### Extension Commands
 
-#### Extensions
+##### Arguments
 
-#### Options
+#### Extension Functions
+
+#### Extension Hooks
+
+#### Extension Options
 
 #### Feature Branches
 

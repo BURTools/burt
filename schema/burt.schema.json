@@ -27,11 +27,18 @@
             "minLength" : 1
         },
         "commandArg" : {
+            "oneOf" : [
+                { "$ref" : "#/$defs/commandArgDef" },
+                { "type" : "string", "minLength" : 1}
+            ]
+        },
+        "commandArgDef" : {
             "type" : "object",
             "properties" : {
                 "multiple" : { "type" : "boolean" },
+                "optional" : { "type" : "boolean" },
                 "type" : { "$ref" : "#/$defs/commandArgType" },
-                "values" : { "$ref" : "#/$defs/commandArgValues" }
+                "enumValues" : { "$ref" : "#/$defs/commandArgEnumValues" }
             },
             "oneOf" : [
                 {
@@ -44,28 +51,40 @@
                     }
                 },
                 {
-                    "required" : [ "values" ]
+                    "properties" : {
+                        "type" : {
+                            "enum" : "enum"
+                        }
+                    },
+                    "required" : [ "enumValues" ]
                 }
             ],
-            "required" : [ "type" ]
+            "additionalProperties" : false
         },
         "commandArgs" : {
-            "type" : "object",
-            "patternProperties" : {
-                "[a-z][a-zA-Z0-9_]*" : { "$ref" : "#/$defs/commandArg" }
-            },
-            "additionalProperties" : false
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/commandArg" }
         },
         "commandArgType" : {
             "type" : "string",
             "enum" : [ "enum", "integer", "number", "string" ]
         },
-        "commandArgValues" : {
+        "commandOptionEnumValue" : {
+            "type" : "object",
+            "properties" : {
+                "help" : { "type" : "string", "minLength" : 1},
+                "value" : {  }
+            },
+            "required" : ["help", "value"],
+            "additionalProperties" : false
+        },
+        "commandArgEnumValues" : {
             "type" : "array",
-            "items" : { "type" : "string", "minLength" : 1 },
+            "items" : { "$ref" : "#$defs/commandOptionEnumValue" },
             "minItems" : 1
         },
         "commandDef" : {
+            "type" : "object",
             "properties" : {
                 "args" : { "$ref" : "#/$defs/commandArgs" },
                 "briefHelp" : { "type" : "string" },
@@ -73,7 +92,8 @@
                 "longHelp" : { "type" : "string" },
                 "options" : { "$ref" : "#/$defs/commandOptions" }
             },
-            "required" : [ "briefHelp" ]
+            "required" : [ "briefHelp" ],
+            "additionalProperties" : false
         },
         "commandExample" : {
             "properties" : {
@@ -193,7 +213,23 @@
         },
         "dependencies" : {
         },
+        "extension" : {
+            "type" : "object",
+            "properties" : {
+                "commands" : { "$ref" : "#/$defs/commands" },
+                "functions" : { "$ref" : "#/$defs/functions" },
+                "hooks" : { "$ref" : "#/$defs/hooks" },
+                "options" : { "$ref" : "#/$defs/options"}
+            },
+            "additionalProperties" : false
+        },
         "function" : {
+
+        },
+        "functions" : {
+
+        },
+        "hooks" : {
 
         },
         "homepage" : {
@@ -230,6 +266,9 @@
             "type" : "array",
             "items" : { "$ref" : "#/$defs/operatingSystem" }
         },
+        "options" : {
+
+        },
         "package" : {
             "type" : "object",
             "properties" : {
@@ -238,12 +277,14 @@
                 "dependencies" : { "$ref" : "#/$defs/dependencies" },
                 "devDependencies" : { "$ref" : "#/$defs/devDependencies" },
                 "description" : { "type" : "string" },
+                "extension" : { "$ref" : "#/$defs/extension" },
                 "homepage" : { "$ref" : "#/$defs/homepage" },
                 "imported" : { "type" : "boolean" },
                 "keywords" : { "$ref" : "#/$defs/keywords" },
                 "license" : { "$ref" : "#/$defs/license" },
                 "modules" : { "$ref" : "#/$defs/modules" },
                 "name" : { "$ref" : "#/$defs/packageName" },
+                "path" : { "$ref" : "#/$defs/path" },
                 "profiles" : { "$ref" : "#/$defs/profiles" },
                 "rules" : { "$ref" : "#/$defs/packageRules" },
                 "toolDependencies" : { "$ref" : "#/$defs/dependencies" },
