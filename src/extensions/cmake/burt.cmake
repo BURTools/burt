@@ -29,8 +29,9 @@ if(NOT _burt_first_load)
     endif()
 endif()
 
-# Always call burt_project() for every inclusion of this file (accounting for the guard). We're assuming it's
-# being included in the root CMakeLists.txt of every repository, either directly through an include() call or
-# indirectly through project(). Those repositories could be submodules of other repositories, causing
-# burt.cmake to be included more than once.
-burt_project()
+# Always call burt_project_initialize() for every inclusion of this file (accounting for the guard). We're
+# assuming it's being included in the root CMakeLists.txt of every repository indirectly through project().
+# Repositories could be submodules of other repositories, causing burt.cmake to be included more than once via
+# more than one call to project(). If this happens to get included from somewhere else, it will essentially
+# get short circuited.
+burt_project_initialize()

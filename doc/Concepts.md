@@ -28,7 +28,7 @@ Control Systems](./Compatibility#version-control-systems). By default, the follo
 - If it is a valid URL matching a pattern `^https?`, then it is assumed to be a Git repository hosted at a
   given URL.
 - If it is a simple `user/repo` kind of format, where `user` is the owner of the repository and `repo` is the
-  name of the repsitory, it is assumed to be a Git repository hosted on [GitHub](https://github.com) at an
+  name of the repository, it is assumed to be a Git repository hosted on [GitHub](https://github.com) at an
   address of `https://github.com/user/repo.git`.
 - `github:user/repo` is analogous to the above.
 - `bitbucket:user/repo` is assumed to be a Git repository hosted on [Bitbucket](https://bitbucket.com) at an
@@ -73,7 +73,7 @@ Control Systems](./Compatibility#version-control-systems). By default, the follo
 
 #### Extension Hooks
 
-#### Extension Options
+#### Extension Configuration Options
 
 #### Feature Branches
 
@@ -102,5 +102,3 @@ between. Anything that would be contextual to a particular environment uses this
 Profile to communicate that concept.
 
 ### Cross Compiling
-
-### Dependencies

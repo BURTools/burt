@@ -2,7 +2,7 @@
     "$schema" : "https://json-schema.org/draft-07/schema",
     "$id" : "https://raw.githubusercontent.com/BURTools/burt/main/schema/burt.schema.json",
     "title" : "burt.json",
-    "description" : "Schema for the main JSON file used by the Burt toolset.",
+    "description" : "Schema for the main JSON file used by the Burt tools.",
     "type" : "object",
     "oneOf" : [
         { "$ref" : "#/$defs/module" },
@@ -10,6 +10,20 @@
         { "$ref" : "#/$defs/project" }
     ],
     "$defs" : {
+        "appStore" : {
+            "enum" : ["amazon", "google-play", "ios", "macos", "windows"]
+        },
+        "appStores" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/appStore" }
+        },
+        "branchName" : {
+            "type" : "string",
+            "minLength" : 1
+        },
+        "branchType" : {
+            "enum" : [ "dev", "feature", "internal", "release" ]
+        },
         "command" : {
             "oneOf" : [
                 { "$ref" : "#/$defs/commandAlias" },
@@ -17,6 +31,7 @@
             ]
         },
         "commands" : {
+            "$comment" : "TODO: make sure the pattern is correct for command names",
             "patternProperties" : {
                 "[a-z0-9-_]+" : { "$ref" : "#/$defs/command" }
             },
@@ -35,10 +50,11 @@
         "commandArgDef" : {
             "type" : "object",
             "properties" : {
+                "enumValues" : { "$ref" : "#/$defs/commandArgEnumValues" },
+                "help" : { "$ref" : "#/$defs/help" },
                 "multiple" : { "type" : "boolean" },
                 "optional" : { "type" : "boolean" },
-                "type" : { "$ref" : "#/$defs/commandArgType" },
-                "enumValues" : { "$ref" : "#/$defs/commandArgEnumValues" }
+                "type" : { "$ref" : "#/$defs/commandArgType" }
             },
             "oneOf" : [
                 {
@@ -48,15 +64,16 @@
                                 "enum" : ["enum"] 
                             }
                         }
-                    }
+                    },
+                    "required" : [ "help" ]
                 },
                 {
                     "properties" : {
                         "type" : {
-                            "enum" : "enum"
+                            "enum" : [ "enum" ]
                         }
                     },
-                    "required" : [ "enumValues" ]
+                    "required" : [ "enumValues", "help" ]
                 }
             ],
             "additionalProperties" : false
@@ -69,18 +86,9 @@
             "type" : "string",
             "enum" : [ "enum", "integer", "number", "string" ]
         },
-        "commandOptionEnumValue" : {
-            "type" : "object",
-            "properties" : {
-                "help" : { "type" : "string", "minLength" : 1},
-                "value" : {  }
-            },
-            "required" : ["help", "value"],
-            "additionalProperties" : false
-        },
         "commandArgEnumValues" : {
             "type" : "array",
-            "items" : { "$ref" : "#$defs/commandOptionEnumValue" },
+            "items" : { "$ref" : "#/$defs/commandOptionEnumValue" },
             "minItems" : 1
         },
         "commandDef" : {
@@ -89,7 +97,7 @@
                 "args" : { "$ref" : "#/$defs/commandArgs" },
                 "briefHelp" : { "type" : "string" },
                 "examples" : { "$ref" : "#/$defs/commandExamples" },
-                "longHelp" : { "type" : "string" },
+                "longHelp" : { "$ref" : "#/$defs/help" },
                 "options" : { "$ref" : "#/$defs/commandOptions" }
             },
             "required" : [ "briefHelp" ],
@@ -97,25 +105,43 @@
         },
         "commandExample" : {
             "properties" : {
+                "help" : { "$ref" : "#/$defs/help" },
+                "multiArgCount" : { "type" : "integer" },
                 "name" : { "type" : "string", "minLength" : 1 },
-                "description" : { "type" : "string" },
-                "options" : { "type" : "array", "items" : { "type" : "string" }}
+                "options" : {  "$ref" : "#/$defs/commandExampleOptions" }
             },
-            "required" : [ "name" ]
+            "required" : [ "help", "name" ],
+            "additionalProperties" : false
         },
         "commandExamples" : {
             "type" : "array",
             "items" : { "$ref" : "#/$defs/commandExample" }
         },
+        "commandExampleOption" : {
+            "type" : "object",
+            "properties" : {
+                "defaultValue" : {},
+                "quantity" : { "type" : "integer" }
+            },
+            "additionalProperties" : false
+        },
+        "commandExampleOptions" : {
+            "$comment" : "TODO: make sure the pattern is correct for option names.",
+            "type" : "object",
+            "patternProperties" : { 
+                "[a-z0-9-_]+" : { "$ref" : "#/$defs/commandExampleOption" }
+            },
+            "additionalProperties" : false
+        },
         "commandOption" : {
             "properties" : {
-                "help" : { "type" : "string", "minLength" : 1 },
+                "enumValues" : { "$ref" : "#/$defs/commandOptionEnumValues" },
+                "help" : { "$ref" : "#/$defs/help" },
                 "longSwitch" : { "type" : "string", "minLength" : 2 },
                 "multiple" : { "type" : "boolean" },
                 "required" : { "type" : "boolean" },
                 "shortSwitch" : { "type" : "string", "minLength" : 1, "maxLength" : 1 },
-                "type" : { "$ref" : "#/$defs/commandOptionType" },
-                "values" : { "$ref" : "#/$defs/commandOptionValues" }
+                "type" : { "$ref" : "#/$defs/commandOptionType" }
             },
             "oneOf" : [
                 {
@@ -125,31 +151,39 @@
                                 "enum" : ["enum"] 
                             }
                         }
-                    }
+                    },
+                    "required" : [ "help" ]
                 },
                 {
-                    "required" : [ "values" ]
+                    "required" : [ "help", "enumValues" ]
                 }
             ],
-            "required" : [ "help" , "switches" ]
+            "required" : [ "help" ],
+            "additionalProperties" : false
         },
         "commandOptions" : {
+            "$comment" : "TODO: need to ensure the correct pattern here",
             "patternProperties" : {
                 "[a-z0-9-_]" : { "$ref" : "#/$defs/commandOption" }
             },
             "additionalProperties" : false
         },
+        "commandOptionEnumValue" : {
+            "type" : "object",
+            "properties" : {
+                "help" : { "$ref" : "#/$defs/help" },
+                "value" : { "type" : "string", "minLength" : 1 }
+            },
+            "required" : ["help", "value"],
+            "additionalProperties" : false
+        },
+        "commandOptionEnumValues" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/commandOptionValue" }
+        },
         "commandOptionType" : {
             "type" : "string",
             "enum" : [ "boolean", "enum", "integer", "number", "string" ]
-        },
-        "commandOptionValue" : {
-            "type" : "string", 
-            "minLength" : 1
-        },
-        "commandOptionValues" : {
-            "type" : "array",
-            "items" : { "$ref" : "#/$defs/commandOptionValue" }
         },
         "condition" : {
             "type" : "object",
@@ -168,7 +202,46 @@
             "items" : { "$ref" : "#/$defs/condition" }
         },
         "configOption" : {
-
+            "$comment" : "TODO: ensure logic on requirements is handled properly here",
+            "type" : "object",
+            "properties" : {
+                "briefHelp" : { "type" : "string", "minLength" : 1 },
+                "context" : { "$ref" : "#/$defs/configOptionContext"},
+                "itemOption" : { "$ref" : "#/$defs/configOption" },
+                "longHelp" : { "$ref" : "#/$defs/help" },
+                "options" : { "$ref" : "#/$defs/configOptions" },
+                "type" : { "$ref" : "#/$defs/configOptionType" }
+            },
+            "oneOf" : [
+                {
+                    "properties" : {
+                        "type" : { 
+                            "not" : { 
+                                "enum" : [ "array", "object" ] 
+                            }
+                        }
+                    },
+                    "required" : [ "briefHelp" ]
+                },
+                {
+                    "required" : [ "briefHelp", "itemOption" ]
+                }
+            ],
+            "additionalProperties" : false
+        },
+        "configOptions" : {
+            "$comment" : "TODO: make sure this is a valid regex for options",
+            "type" : "object",
+            "patternProperties" : {
+                "[a-z0-9-_]+" : { "$ref" : "#/$defs/configOption" }
+            },
+            "additionalProperties" : false
+        },
+        "configOptionContext" : {
+            "enum" : [ "both", "global", "local" ]
+        },
+        "configOptionType" : {
+            "enum" : [ "array", "boolean", "group", "integer", "object", "string" ]
         },
         "contact" : {
             "oneOf" : [
@@ -187,7 +260,8 @@
                 "name" : { "$ref" : "#/$defs/contactName" },
                 "url" : { "format" : "uri" }
             },
-            "required" : [ "name" ]
+            "required" : [ "name" ],
+            "additionalProperties" : false
         },
         "contactName" : {
             "type" : "string",
@@ -200,44 +274,121 @@
             "type" : "array",
             "items" : { "$ref" : "#/$defs/cpuArchitecture" }
         },
-        "credits" : {
-            "type" : "object",
-            "properties" : {
-                "author" : { "$ref" : "#/$defs/contact" },
-                "contributors" : { "$ref" : "#/$defs/contributors" },
-                "license" : { "$ref" : "#/$defs/license" }
-            }
-        },
-        "dependency" : {
-
-        },
-        "dependencies" : {
-        },
         "extension" : {
             "type" : "object",
             "properties" : {
                 "commands" : { "$ref" : "#/$defs/commands" },
                 "functions" : { "$ref" : "#/$defs/functions" },
                 "hooks" : { "$ref" : "#/$defs/hooks" },
-                "options" : { "$ref" : "#/$defs/options"}
+                "options" : { "$ref" : "#/$defs/configOptions"}
             },
             "additionalProperties" : false
         },
         "function" : {
-
+            "type" : "object",
+            "properties" : {
+                "args" : { "$ref" : "#/$defs/functionArgs"},
+                "help" : { "$ref" : "#/$defs/help" },
+                "pipe" : { "type" : "boolean" },
+                "return" : { "$ref" : "#/$defs/functionParameter" }
+            },
+            "required" : [ "help" ],
+            "additionalProperties" : false
         },
         "functions" : {
-
+            "type" : "object",
+            "patternProperties" : {
+                "[a-z0-9-_]+" : { "$ref" : "#/$defs/command" }
+            },
+            "additionalProperties" : false
+        },
+        "functionArgs" : { 
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/functionParameter"}
+        },
+        "functionName" : {
+            "$comment" : "A valid string for a function name. TODO: use a better pattern here",
+            "type" : "string",
+            "minLength" : 1
+        },
+        "functionParameter" : {
+            "type" : "object",
+            "properties" : {
+                "help" : { "$ref" : "#/$defs/help" },
+                "schema" : { "$ref" : "#/$defs/schema" }
+            },
+            "required" : [ "help" ],
+            "additionalProperties" : false
+        },
+        "globExpression" : {
+            "$comment" : "TODO: need a real regex to test this",
+            "type" : "string",
+            "minLength" : 1
+        },
+        "globExpressionList" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/globExpression" }
+        },
+        "help" : {
+            "oneOf" : [
+                { "type" : "string", "minLength" : 1 },
+                { "$ref" : "#/$defs/helpSections" }
+            ]
+        },
+        "helpSection" : {
+            "oneOf" : [
+                { "type" : "string", "minLength" : 1 },
+                { "$ref" : "#/$defs/helpSectionDef"}
+            ]
+        },
+        "helpSections" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/helpSection" }
+        },
+        "helpSectionDef" : {
+            "type" : "object",
+            "properties" : {
+                "help" : { "$ref" : "#/$defs/help" },
+                "indent" : { "type" : "boolean" },
+                "title" : { "type" : "string", "minLength" : 1 }
+            },
+            "required" : [ "help" ],
+            "additionalProperties" : false
+        },
+        "hook" : {
+            "type" : "object",
+            "properties" : {
+                "after" : { "$ref" : "#/$defs/pluginNames" },
+                "before" : { "$ref" : "#/$defs/pluginNames" },
+                "callback" : { "$ref" : "#/$defs/functionName" },
+                "extension" : { "$ref" : "#/$defs/packageName" },
+                "function" : { "$ref" : "#/$defs/functionName" },
+                "type" : { "$ref" : "#/$defs/hookType" }
+            },
+            "required" : [ "callback", "extension", "function", "type" ],
+            "additionalProperties" : false
         },
         "hooks" : {
-
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/hook" }
+        },
+        "hookType" : {
+            "enum" : [ "pipe", "post", "pre" ]
         },
         "homepage" : {
             "type" : "string", 
             "format" : "uri" 
         },
         "keywords" : {
-
+            "type" : "array",
+            "items" : { "type" : "string", "minLength" : 1 }
+        },
+        "libraryFilePath" : {
+            "$comment" : "TODO: be a bit more descriptive about the type of file allowed here.",
+            "$ref" : "#/$defs/path"
+        },
+        "libraryType" : {
+            "enum" : ["combined", "dynamic", "header", "shared", "static"]
         },
         "license" : {
             "$comment" : "This should be SPDX license expressions.",
@@ -251,13 +402,90 @@
         },
         "module" : {
             "properties" : {
-                "x" : {}
+                "bundle" : { "type" : "boolean" },
+                "dependencies" : { "$ref" : "#/$defs/moduleDependencies" },
+                "deploy" : { "type" : "boolean" },
+                "export" : { "type" : "boolean" },
+                "libraryType" : { "$ref" : "#/$defs/libraryType" },
+                "name" : { "$ref" : "#/$defs/moduleName" },
+                "privateHeaderDirs" : { "$ref" : "#/$defs/relativePathList" },
+                "publicHeaderDirs" : { "$ref" : "#/$defs/relativePathList" },
+                "publicHeaderExcludes" : { "$ref" : "#/$defs/regularExpressionList" },
+                "publicHeaderGlobs" : { "$ref" : "#/$defs/globExpressionList" },
+                "rules" : { "$ref" : "#/$defs/moduleRules" },
+                "sources" : { "$ref" : "#/$defs/relativePathList" },
+                "sourceDirs" : { "$ref" : "#/$defs/relativePathList" },
+                "sourceExcludes" : { "$ref" : "#/$defs/regularExpressionList" },
+                "sourceGlobs" : { "$ref" : "#/$defs/globExpressionList" },
+                "stores" : { "$ref" : "#/$defs/appStores" },
+                "type" : { "$ref" : "#/$defs/moduleType" }
             },
-            "required" : ["x"],
+            "required" : [ "type" ],
             "additionalProperties" : false
         },
         "modules" : {
-
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/module" }
+        },
+        "moduleDependency" : {
+            "oneOf" : [
+                { "$ref" : "#/$defs/moduleDependencyDef" },
+                { "$ref" : "#/$defs/moduleDependencyString" }
+            ]
+        },
+        "moduleDependencyDef" : {
+            "type" : "object",
+            "properties" : {
+                "deploy" : { "type" : "boolean" },
+                "link" : { "type" : "boolean" },
+                "name" : { "$ref" : "#/$defs/moduleDependencyString" },
+                "package" : { "$ref" : "#/$defs/packageName" },
+                "transitive" : { "type" : "boolean" }
+            },
+            "required" : [ "name" ],
+            "additionalProperties" : false
+        },
+        "moduleDependencyString" : {
+            "oneOf" : [
+                { "$ref" : "#/$defs/moduleName" },
+                { "$ref" : "#/$defs/libraryFilePath" },
+                { "$ref" : "#/$defs/qualifiedModuleName" }
+            ]
+        },
+        "moduleDependencies" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/moduleDependency" }
+        },
+        "moduleName" : {
+            "$comment" : "TODO: need a sensible regex here for the valid module names.",
+            "type" : "string",
+            "minLength" : 1
+        },
+        "moduleRule" : {
+            "bundle" : { "type" : "boolean" },
+            "condition" : { "$ref" : "#/$defs/condition" },
+            "continue" : { "type" : "boolean" },
+            "dependencies" : { "$ref" : "#/$defs/moduleDependencies" },
+            "deploy" : { "type" : "boolean" },
+            "export" : { "type" : "boolean" },
+            "libraryType" : { "$ref" : "#/$defs/libraryType" },
+            "privateHeaderDirs" : { "$ref" : "#/$defs/relativePathList" },
+            "publicHeaderDirs" : { "$ref" : "#/$defs/relativePathList" },
+            "publicHeaderExcludes" : { "$ref" : "#/$defs/regularExpressionList" },
+            "publicHeaderGlobs" : { "$ref" : "#/$defs/globExpressionList" },
+            "sources" : { "$ref" : "#/$defs/relativePathList" },
+            "sourceDirs" : { "$ref" : "#/$defs/relativePathList" },
+            "sourceExcludes" : { "$ref" : "#/$defs/regularExpressionList" },
+            "sourceGlobs" : { "$ref" : "#/$defs/globExpressionList" },
+            "stores" : { "$ref" : "#/$defs/appStores" },
+            "type" : { "$ref" : "#/$defs/moduleType" }
+        },
+        "moduleRules" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/moduleRule"}
+        },
+        "moduleType" : {
+            "enum" : ["executable", "library"]
         },
         "operatingSystem" : {
             "enum" : ["linux", "macos", "windows"]
@@ -266,16 +494,14 @@
             "type" : "array",
             "items" : { "$ref" : "#/$defs/operatingSystem" }
         },
-        "options" : {
-
-        },
         "package" : {
             "type" : "object",
             "properties" : {
                 "author" : { "$ref" : "#/$defs/contact" },
+                "buildCondition" : { "$ref" : "#/$defs/condition" },
                 "contributors" : { "$ref" : "#/$defs/contacts" },
-                "dependencies" : { "$ref" : "#/$defs/dependencies" },
-                "devDependencies" : { "$ref" : "#/$defs/devDependencies" },
+                "dependencies" : { "$ref" : "#/$defs/packageDependencies" },
+                "devDependencies" : { "$ref" : "#/$defs/packageDependencies" },
                 "description" : { "type" : "string" },
                 "extension" : { "$ref" : "#/$defs/extension" },
                 "homepage" : { "$ref" : "#/$defs/homepage" },
@@ -285,12 +511,11 @@
                 "modules" : { "$ref" : "#/$defs/modules" },
                 "name" : { "$ref" : "#/$defs/packageName" },
                 "path" : { "$ref" : "#/$defs/path" },
-                "profiles" : { "$ref" : "#/$defs/profiles" },
                 "rules" : { "$ref" : "#/$defs/packageRules" },
-                "toolDependencies" : { "$ref" : "#/$defs/dependencies" },
+                "toolDependencies" : { "$ref" : "#/$defs/packageDependencies" },
                 "version" : { "$ref" : "#/$defs/packageVersion" }
             },
-            "required" : ["name", "version"],
+            "required" : [ "name", "version" ],
             "additionalProperties" : false
         },
         "packages" : {
@@ -302,6 +527,58 @@
                 ]
             }
         },
+        "packageDependency" : {
+            "oneOf" : [
+                { "$ref" : "#/$defs/versionRange" },
+                { "$ref" : "#/$defs/packageDependencyDef" }
+            ]
+        },
+        "packageDependencies" : {
+            "$comment" : "TODO: make sure this is a correct regex for package names here",
+            "type" : "object",
+            "patternProperties" : {
+                "[a-z0-9-_]" : { "$ref" : "#/$defs/packageDependency" }
+            }
+        },
+        "packageDependencyDef" : {
+            "type" : "object",
+            "properties" : {
+                "branch" : { "$ref" : "#/$defs/branchName" },
+                "branchType" : { "$ref" : "#/$defs/branchType" },
+                "optional" : { "type" : "boolean" },
+                "path" : { "$ref" : "#/$defs/path" },
+                "version" : { "$ref" : "#/$defs/versionRange" }
+            },
+            "allOf" : [
+                {
+                    "oneOf" : [
+                        {
+                            "properties" : {
+                                "branchType" : { 
+                                    "not" : { 
+                                        "enum" : [ "feature", "internal" ] 
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "required" : [ "branch" ]
+                        }
+                    ]
+                },
+                {
+                    "oneOf" : [
+                        {
+                            "required" : [ "path" ]
+                        },
+                        {
+                            "required" : [ "version" ]
+                        }
+                    ]
+                }
+            ],
+            "additionalProperties" : false
+        },
         "packageName" : {
             "type" : "string",
             "minLength" : 2,
@@ -309,10 +586,21 @@
             "pattern" : "^[a-zA-Z0-9_][a-zA-Z0-9_\\+\\.-]{1,49}$"
         },
         "packageRule" : {
-
+            "type" : "object",
+            "properties" : {
+                "condition" : { "$ref" : "#/$defs/condition" },
+                "continue" : { "type" : "boolean" },
+                "dependencies" : { "$ref" : "#/$defs/packageDependencies" },
+                "devDependencies" : { "$ref" : "#/$defs/packageDependencies" },
+                "imported" : { "type" : "boolean" },
+                "license" : { "$ref" : "#/$defs/license" },
+                "toolDependencies" : { "$ref" : "#/$defs/packageDependencies" }
+            },
+            "additionalProperties" : false
         },
         "packageRules" : {
-
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/packageRule" }
         },
         "packageVersion" : {
             "oneOf" : [
@@ -325,21 +613,8 @@
             "type" : "string",
             "minLength" : 1
         },
-        "plugin" : {
-            "type" : "object",
-            "properties" : {
-                "commands" : { "$ref" : "#/$defs/commands" },
-                "description" : { "type" : "string" },
-                "name" : { "$ref" : "#/$defs/packageName" }
-            },
-            "required" : [ "name" ]
-        },
-        "plugins" : {
-            "type" : "array",
-            "items" : { "$ref" : "#/$defs/plugin" }
-        },
-        "profiles" : {
-
+        "pluginNames" : {
+            "$comment" : "List of strings of valid plugin names"
         },
         "profileCondition" : {
             "type" : "object",
@@ -359,10 +634,10 @@
                 "packages" : { "$ref" : "#/$defs/packages" },
                 "repository" : { "$ref" : "#/$defs/repository" },
                 "rules" : { "$ref" : "#/$defs/projectRules" },
-                "subprojects" : { "$ref" : "#/$defs/subprojects" },
-                "toolDependencies" : { "$ref" : "#/$defs/dependencies"}
+                "subProjects" : { "$ref" : "#/$defs/subProjects" },
+                "toolDependencies" : { "$ref" : "#/$defs/packageDependencies"}
             },
-            "required" : ["packages", "repository", "toolDependencies"],
+            "required" : [ "packages", "repository", "toolDependencies" ],
             "additionalProperties" : false
         },
         "projectRule" : {
@@ -372,13 +647,23 @@
                 "continue" : { "type" : "boolean" },
                 "license" : { "$ref" : "#/$defs/license" },
                 "packages" : { "$ref" : "#/$defs/packages" },
-                "subprojects" : { "$ref" : "#/$defs/subprojects" },
-                "toolDependencies" : { "$ref" : "#/$defs/toolDependencies"}
-            }
+                "subProjects" : { "$ref" : "#/$defs/subProjects" },
+                "toolDependencies" : { "$ref" : "#/$defs/packageDependencies"}
+            },
+            "additionalProperties" : false
         },
         "projectRules" : {
             "type" : "array",
             "items" : { "$ref" : "#/$defs/projectRule" }
+        },
+        "qualifiedModuleName" : {
+            "$comment" : "A module name with the package name that goes with it. TODO: need regex",
+            "type" : "string",
+            "minLength" : 1
+        },
+        "regularExpressionList" : {
+            "type" : "array",
+            "items" : { "format" : "regex" }
         },
         "repository" : {
             "oneOf" : [
@@ -395,7 +680,8 @@
                 "type" : { "$ref" : "#/$defs/repositoryType" },
                 "url" : { "format" : "uri" }
             },
-            "required" : [ "url" ]
+            "required" : [ "url" ],
+            "additionalProperties" : false
         },
         "relativePath" : {
             "$comment" : "This will get validated as a correct path at runtime, so no need for a pattern.",
@@ -411,17 +697,27 @@
             "type" : "string",
             "minLength" : 1
         },
+        "schema" : {
+            "$comment" : "Akin to JSON schema, same format, could be file or string, TODO: need regex for it",
+            "type" : "string",
+            "minLength" : 1
+        },
         "semver" : {
             "$comment" : "Conforms to the semver specification at https://semver.org",
             "type" : "string",
             "pattern" : "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
         },
-        "subprojects" : {
+        "subProjects" : {
             "type" : "array",
             "items" : { "$ref" : "#/$defs/path" }
         },
         "toolDependency" : {
             "type" : "object"
+        },
+        "versionRange" : {
+            "$comment" : "Conforms to the supported version range on https://github.com/npm/node-semver. TODO: implement actual regex for this.",
+            "type" : "string",
+            "minLength" : 1
         }
     }
 }

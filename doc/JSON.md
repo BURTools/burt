@@ -17,10 +17,8 @@
   - [Command Option](#command-option)
   - [Command Option Enum Value](#command-option-enum-value)
   - [Condition](#condition)
+  - [Configuration Option](#configuration-option)
   - [Contact](#contact)
-  - [Dependency](#dependency)
-    - [Dependency String](#dependency-string)
-    - [Dependency Object](#dependency-object)
   - [Extension](#extension)
   - [Function](#function)
   - [Function Parameter](#function-parameter)
@@ -29,9 +27,13 @@
   - [Hook](#hook)
   - [Module](#module)
   - [Module Dependency](#module-dependency)
+    - [Module Dependency String](#module-dependency-string)
+    - [Module Dependency Object](#module-dependency-object)
   - [Module Rule](#module-rule)
-  - [Option](#option)
   - [Package](#package)
+  - [Package Dependency](#package-dependency)
+    - [Package Dependency String](#package-dependency-string)
+    - [Package Dependency Object](#package-dependency-object)
   - [Package Rule](#package-rule)
   - [Profile Condition](#profile-condition)
   - [Project](#project)
@@ -45,11 +47,11 @@
 The `burt.json` file supplies information to Burt about a project. These `burt.json` files can be found in the
 following places:
 
-- [Project File](#project-file) : [required] For each [Project](./Concepts.md/#project), there is at least one
-  `burt.json` in the root of the repository.
-- [Package File](#package-file) : [optional] There may also be a `burt.json` in the root folder of each
+- [Project File](#project-file) : **[required]** For each [Project](./Concepts.md/#project), there is at least
+  one `burt.json` in the root of the repository.
+- [Package File](#package-file) : **[optional]** There may also be a `burt.json` in the root folder of each
 [Package](./Concepts.md#package).
-- [Module File](#module-file) : [optional] There may also be a `burt.json` in the root folder of each
+- [Module File](#module-file) : **[optional]** There may also be a `burt.json` in the root folder of each
   [Module](./Concepts.md#module).
 
 ### Fully Defined
@@ -151,7 +153,6 @@ with the following contents:
 In this case, the [module File](#module-file) would be located at the path
 `[repository-root]/my/package/my/module/burt.json`.
 
-
 ## Reference
 
 ### Command
@@ -192,6 +193,7 @@ control. If this is an object, the schema is as follows:
 ```json
 {
   "enumValues" : [],
+  "help" : "",
   "multiple" : false,
   "optional" : false,
   "type" : "",
@@ -201,6 +203,7 @@ control. If this is an object, the schema is as follows:
 - `enumValues` : **[conditionally required]** if the `type` is `enum`, this is the list of potential values.
   Each entry in this array is a [Command Option Enum Value](#command-option-enum-value) object. This option is
   required if the `type` is `enum` and ignored any other time.
+- `help` : **[required]** the [Help](#help) describing what the argument is used for.
 - `multiple` : **[optional]** if `true`, it indicates that the argument can be repeated. If this is omitted,
   the argument is assumed to be `false` and not be allow the argument multiple times.
 - `optional` : **[optional]** if `true`, it indicates that the argument is required for the command. If this
@@ -338,6 +341,44 @@ the JSON Schema specification.
 - `targetProfile`: **[optional]** a [Profile Condition](#profile-condition) applied to the environment for
   which the code is being built for.
 
+### Configuration Option
+
+Defines a [Configuration Option](./Concepts.md#extension-configuration-options) that can be used to configure
+an [Extension](#extension).
+
+```json
+{
+  "briefHelp" : "",
+  "context" : "",
+  "itemOption" : {},
+  "longHelp" : "",
+  "options" : {},
+  "type" : ""
+}
+```
+
+- `briefHelp` : **[required]** the help text displayed in listing of many options. Should be no longer than
+  one line.
+- `context` : **[optional]** the context where the option is relevant, which may be:
+  - `both` : **(default)** the option can be applied both locally and globally
+  - `global` : the option can be applied globally
+  - `local` : the option can be applied locally
+- `itemOption` : **[conditionally required]** the [Configuration Option](#configuration-option) contained
+  within an option whose `type` is `array` or `object`. This is required if the `type` is `array` or `object`.
+- `longHelp` : **[optional]** the detailed [Help](#help) that describes how the option works and how it is to
+  be used.
+- `options` : **[optional]** a recursive definition of options within the option if the `type` is `group`.
+- `type` : **[optional]** the type of data expected to be specified in the option, which may be:
+  - `array` : an array of [Configuration Options](#configuration-option), where the option is specified in
+    `itemOption`
+  - `boolean` : a `true` or `false` value
+  - `group` : a container of [Configuration Options](#configuration-option), used to define options
+    recursively
+  - `integer` : an whole number value
+  - `object` : a key-value pair, where the key is a string and the value is an [Configuration
+    Option](#configuration-option), as specified in `itemOption`
+  - `string` : **(default)** a string value
+
 ### Contact
 
 A reference to a person. This may be a string or an object as defined below. If this is a string, the format
@@ -371,65 +412,6 @@ The properties of this object are as follows:
 > entry](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#people-fields-author-contributors) in
 > `package.json` used by NPM.
 
-### Dependency
-
-A [Dependency](./Concepts.md#dependencies) is used to specify relationships to packages that contain tools,
-link targets, etc. One such entry may either be a string or an object.
-
-#### Dependency String
-
-In string form, it is specifying just the version of the package and all default behavior is being used to
-find the package. The format of the string itself follows the exact specification of
-[node-semver](https://github.com/npm/node-semver/blob/v7.5.4/README.md). Some examples are:
-
-- `2.3.4`, `v2.3.4`, `=2.3.4` : matches exactly version `2.3.4`
-- `>2.3.4` : matches any version greater than `2.3.4`, such as `2.3.4`, `2.4.0`, and `3.0.1`
-- `>=2.3.4` : matches any version greater than or equal to `2.3.4`, such as `2.3.4`, `2.3.5`, `2.4.0`, and
-  `3.0.1`
-- `<2.3.4` : matches any version less than `2.3.4`, such as `2.3.3`, `2.2.0`, and `1.0.1`
-- `<=2.3.4` : matches any version less than or equal to `2.3.4`, such as `2.3.4`, `2.3.3`, `2.2.0`, and
-  `1.0.1
-- `~2.3.4` : matches any patch version greater than or equal to `2.3.4`, such as `2.3.4`, `2.3.5`, but not
-  `2.4.0`
-- `^2.3.4` : matches any major and minor version greater than or equal to `2.3.4`, such as `2.3.5` and
-  `2.4.0`, but not `3.0.0`
-
-See the the [node-semver README](https://github.com/npm/node-semver/blob/v7.5.4/README.md) for more examples
-and an exhaustive list of supported behavior.
-
-#### Dependency Object
-
-For more precise control over what version of the package to use or what source to acquire the package from,
-an object can be specified whose schema is as follows:
-
-```json
-{
-  "branch" : "",
-  "branchType" : "",
-  "optional" : false,
-  "provider" : "",
-  "version" : ""
-}
-```
-
-- `branch` : **[conditionally required]** the branch for which to retrieve the package of the given version.
-  This is required for `branchType` of `internal` or `feature` in order to determine which branch it is for.
-- `branchType` : **[optional]** a designation for the type of branch from which to source the package at the
-  given version. This may be one of the following:
-  - `dev` : indicates the main development branch
-  - `feature` : indicates a long-running feature branch. The `branch` property is also required for this
-    branch type.
-  - `internal` : indicates an internal testing branch. The `branch` property is also required for this branch
-    type.
-  - `release` : **(default)** indicates the official release branch
-- `provider` : **[optional]** the name of the package containing the [Extension](./Concepts.md#extensions)
-  that provides the package. If this is omitted, the `defaultDependencyProvider` from the [Package](#package)
-  is used. If the `defaultDependencyProvider` on the [Package](#package) is omitted, the
-  `defaultDependencyProvider` on the [Project](#project) is used.
-- `version` : **[required]** the version string designating which version or ranges of versions are allowed to
-  be used. See the [Dependency String](#dependency-string) for details on the formatting of this property, since it uses
-  the same formatting.
-
 ### Extension
 
 This object defines an extension to Burt itself. There are a number of ways a package can [Extend
@@ -454,7 +436,7 @@ Burt](./Concepts.md#extensions), which are defined here on this object.
   in this array is a [Hook](#hook) object.
 - `options` : **[optional]** the [Options](./Concepts.md#extension-options) provided by this extension. Each
   key in this object is the name of the option as it will be passed on the command line or defined in the
-  options file and each value is an [Option](#option) object.
+  options file and each value is an [Configuration Option](#configuration-option) object.
 
 ### Function
 
@@ -576,9 +558,10 @@ examples showing the appropriate properties for each of these types of modules:
 {
   "type" : "executable",
   "bundle" : false,
-  "dependencies" : {},
+  "dependencies" : [],
   "deploy" : true,
   "export" : false,
+  "name" : "",
   "privateHeaderDirs" : [],
   "rules" : [],
   "sources" : [],
@@ -593,10 +576,11 @@ examples showing the appropriate properties for each of these types of modules:
 {
   "type" : "library",
   "bundle" : false,
-  "dependencies" : {},
+  "dependencies" : [],
   "deploy" : true,
   "export" : false,
   "libraryType" : "",
+  "name" : "",
   "privateHeaderDirs" : [],
   "publicHeaderDirs" : [],
   "publicHeaderExcludes" : [],
@@ -613,10 +597,10 @@ examples showing the appropriate properties for each of these types of modules:
   [bundle](./Concepts.md#bundle). This is `true` by default when the `type` is library and `false` by default
   when the `type` is `executable`. This property can be overridden by the [Module Rules](#module-rule) defined
   in the `rules` property.
-- `dependencies` : **[optional]** the [dependencies](./Concepts.md#module-dependencies) this module has on
-  other modules. The keys in this object are the fully-qualified names of the modules to be depended upon and
-  the value is a [Module Dependency](#module-dependency) object, which may be empty `{}` for default behavior.
-  This property can be appended by the [Module Rules](#module-rule) defined in the `rules` property.
+- `dependencies` : **[optional]** the array of [dependencies](./Concepts.md#module-dependencies) this module
+  has on other modules or library files. Each item in the array is a [Module Dependency](#module-dependency),
+  which may be a string or an object for more refined behavior. This property can be appended by the [Module
+  Rules](#module-rule) defined in the `rules` property.
 - `deploy` : **[optional]** indicates whether or not the target will be [deployed](./Concepts.md#deploy). If
   this option is omitted, the default value is `true` when `type` is `executable` or `type` is `library` and
   `libraryType` is `module`. This property can be overridden by the [Module Rules](#module-rule) defined in
@@ -625,6 +609,9 @@ examples showing the appropriate properties for each of these types of modules:
   to the package produced by the containing package declaration. This is `true` by default when the `type` is
   `library` and `false` by default when the `type` is `executable`. This property can be overridden by the
   [Module Rules](#module-rule) defined in the `rules` property.
+- `name` : **[optional]** the name of the module. If this is omitted, the name of the root directory of the
+  module is used as the name of the module. For example, if the module is located at `path/to/MyModule`, the
+  name of the module would be `MyModule`.
 - `privateHeaderDirs` : **[optional]** the list of directories that contain header files to be included within
   the module itself. For libraries, these header files are not exported to the package and cannot be used by
   dependency modules. These paths are relative to the root of the module. This property can be appended by
@@ -651,7 +638,7 @@ examples showing the appropriate properties for each of these types of modules:
   the `sourceDirs` are included in the list of sources. If the `sourceExcludes` is also defined, it further
   filters the files that successfully match one of these patterns. These patterns are glob patterns, such as
   `*.cpp`. This property can be appended by the [Module Rules](#module-rule) defined in the `rules` property.
-- `type` : **[optional]** the type of the module. This can be one of the following:
+- `type` : **[required]** the type of the module. This can be one of the following:
   - `executable` : the module will be an executable (exe, app bundle, etc.)
   - `library` : **(default)** the module will be a library (shared, static, framework, etc.)
   This property can be overridden by the [Module Rules](#module-rule) defined in the `rules` property.
@@ -662,7 +649,7 @@ These properties only apply to modules with `type` equal to `executable`:
   executable. The following possible values can be used:
   - `amazon` : the app will be signed and prepared for the Amazon app store for Android.
     <!-- cspell: disable-next-line -->
-  - `googleplay` : the app will be signed and prepared for the Google play store for Android.
+  - `google-play` : the app will be signed and prepared for the Google play store for Android.
   - `ios` : the app will be signed and prepared for the Apple store for iOS apps. This involves signing the
     app with the appropriate developer keys, etc.
   - `macos` : the app will be signed and prepared for the MacOS app store.
@@ -704,22 +691,47 @@ These properties only apply to modules with `type` equal to `library`:
 ### Module Dependency
 
 A Module Dependency allows the declaration of [dependencies between
-modules](./Concepts.md#module-dependencies) that facilitate building, linking, or deploying modules.
+modules](./Concepts.md#module-dependencies) that facilitate building, linking, or deploying modules. This may
+be expressed as a string or as an object.
+
+#### Module Dependency String
+
+When expressed as a string, the module dependency can have the following format:
+
+- `<module-name>` : the entire string is the name of a module in the current package.
+- `<package-name>::<module-name>` : the dependency is a module named `<module-name>` in the package named
+  `<package-name>`.
+- `<library-path>` : the path to a library file that should be linked against. This can be a relative path to
+  the library file relative to the root of a package that contains it. It may also simply be the filename of a
+  library that should be linked, as is the case when using API from the operating system.
+
+When specifying a string, it is not much different than specifying an [object](#module-dependency-object) with
+the `name` property and accepting all other properties as defaults.
+
+#### Module Dependency Object
 
 ```json
 {
   "deploy" : true,
   "link" : true,
+  "name" : "",
+  "package" : "",
   "transitive" : true
 }
 ```
 
-- `deploy` : `true` if the dependency should be deployed. This is ignored for static library dependencies and
-  `true` by default for all others.
-- `link` : `true` if the dependency is a link-time dependency. This is ignored for `library` modules that are
-  `header` type, since there is nothing to link against, and `true` by default for all others.
-- `transitive` : `true` if the dependency is transitive and inherited by dependents of this module. This is
-  `true` by default for all dependencies.
+- `deploy` : **[optional]**`true` if the dependency should be deployed. This is ignored for static library
+  dependencies and `true` by default for all others.
+- `link` : **[optional]** `true` if the dependency is a link-time dependency. This is ignored for `library`
+  modules that are `header` type, since there is nothing to link against, and `true` by default for all
+  others.
+- `name` : **[required]** a [Module Dependency String](#module-dependency-string) that defines the library
+  upon which there is a dependency.
+- `package` : **[optional]** the package that contains the module. If this is omitted, the module is either
+  specified in `name` using its fully qualified `<package-name>::<module-name>` format, the module is a part
+  of the [Package](#package) defining the module that has the dependency, or it is a library file.
+- `transitive` : **[optional]** `true` if the dependency is transitive and inherited by dependents of this
+  module. This is `true` by default for all dependencies.
 
 ### Module Rule
 
@@ -732,7 +744,7 @@ of this feature.
   "bundle" : true,
   "condition" : {},
   "continue" : true,
-  "dependencies" : {},
+  "dependencies" : [],
   "deploy" : true,
   "export" : false,
   "libraryType" : "",
@@ -740,7 +752,6 @@ of this feature.
   "publicHeaderDirs" : [],
   "publicHeaderExcludes" : [],
   "publicHeaderGlobs" : [],
-  "rules" : [],
   "sources" : [],
   "sourceDirs" : [],
   "sourceExcludes" : [],
@@ -757,10 +768,9 @@ of this feature.
   omitted, the rule is always applied.
 - `continue` : **[optional]** if the `condition` matches and this is `false`, processing will not continue to
   the next rule. If this is `true` (the default), processing will always continue to the next rule.
-- `dependencies` : **[optional]** inserts or overrides the `dependencies` defined on the containing
-  [Module](#module) and modifications by any previously applied rules. If this is omitted, no changes are
-  made to the `dependencies` property. Each key in this object is the name of the package providing the
-  dependency and each value is a [Dependency](#dependency) object.
+- `dependencies` : **[optional]** appends [Module Dependencies](#module-dependency) to the `dependencies`
+  defined on the containing  [Module](#module) and modifications by any previously applied rules. If this is
+  omitted, no changes are made to the `dependencies` property.
 - `deploy` : **[optional]** if specified overrides the value of the `deploy` property on the containing
   [Module](#module) and modifications from previously applied rules. If omitted, the `deploy` property is not
   modified.
@@ -808,41 +818,6 @@ of this feature.
   after modifications from previous rules. If this is omitted, the `type` property is not overridden by this
   rule.
 
-### Option
-
-Defines an [Option](./Concepts.md#extension-options) that can be used to configure an [Extension](#extension).
-
-```json
-{
-  "briefHelp" : "",
-  "context" : "",
-  "itemOption" : {},
-  "longHelp" : "",
-  "options" : {},
-  "type" : ""
-}
-```
-
-- `briefHelp` : **[required]** the help text displayed in listing of many options. Should be no longer than
-  one line.
-- `context` : **[optional]** the context where the option is relevant, which may be:
-  - `both` : **(default)** the option can be applied both locally and globally
-  - `global` : the option can be applied globally
-  - `local` : the option can be applied locally
-- `itemOption` : **[conditionally required]** the [Option](#option) contained within an option whose `type` is
-  `array` or `object`. This is required if the `type` is `array` or `object`.
-- `longHelp` : **[optional]** the detailed [Help](#help) that describes how the option works and how it is to
-  be used.
-- `options` : **[optional]** a recursive definition of options within the option if the `type` is `group`.
-- `type` : **[optional]** the type of data expected to be specified in the option, which may be:
-  - `array` : an array of [Options](#option), where the option is specified in `itemOption`
-  - `boolean` : a `true` or `false` value
-  - `group` : a container of [Options](#option), used to define options recursively
-  - `integer` : an whole number value
-  - `object` : a key-value pair, where the key is a string and the value is an [Option](#option), as specified
-    in `itemOption`
-  - `string` : **(default)** a string value
-
 ### Package
 
 Defines a [Package](./Concepts.md#package) either in a [Project](#project) or as a [Package
@@ -864,7 +839,6 @@ File](#package-file).
   "modules" : [],
   "name" : "",
   "path" : "",
-  "profiles" : [],
   "rules" : [],
   "toolDependencies" : {},
   "version" : ""
@@ -882,14 +856,15 @@ File](#package-file).
 - `dependencies` : **[optional]** the list of [dependencies](./Concepts.md#package-dependencies) this package
   has on other packages. These dependencies are inherited by packages that depend on this package,
   constructing a dependency graph. The keys in this object are the names of packages and each value is a
-  [Dependency](#dependency) object or string. Do not put tools, such as test harnesses, compilers, etc. into
-  this collection since they are not dependencies to be inherited, put them into `devDependencies` instead.
-  This property can be appended by the [Package Rules](#package-rule) defined in the `rules` property.
+  [Package Dependency](#package-dependency) object or string. Do not put tools, such as test harnesses,
+  compilers, etc. into this collection since they are not dependencies to be inherited, put them into
+  `devDependencies` instead. This property can be appended by the [Package Rules](#package-rule) defined in
+  the `rules` property.
 - `devDependencies` : **[optional]** the list of developer dependencies this package has on other packages.
   These dependencies are only installed for developers actively building this package and will not be
   inherited by downstream packages depending on this package. This object is very similar to the
   `dependencies` object, where each key in this object is the name of the package and each value is the
-  [Dependency](#dependency) object or string. This property can be appended by the [Package
+  [Package Dependency](#package-dependency) object or string. This property can be appended by the [Package
   Rules](#package-rule) defined in the `rules` property.
 - `description` : **[optional]** a long description of the package. This is not required, but strongly
   suggested since it will be used in package listings and for searching.
@@ -918,10 +893,69 @@ File](#package-file).
   Each one of the entries in this array are [Package Rule](#package-rule) objects.
 - `toolDependencies` : **[optional]** the list of [Tool Dependencies](./Concepts.md#tool-dependencies) the
   package has. Much like `dependencies`, the keys in this object are the names of the packages and the values
-  are [Dependencies](#dependency).
+  are [Package Dependencies](#package-dependency).
 - `version` : **[required]** the version of the package. This must either be a [Semantic
   Version](https://semver.org) or it must be a version of the form `x.y`, where the patch number will be
   computed automatically to complete the Semantic Version.
+
+### Package Dependency
+
+A [Dependency](./Concepts.md#package-dependencies) is used to specify relationships to packages that contain
+tools, link targets, etc. One such entry may either be a string or an object.
+
+#### Package Dependency String
+
+In string form, it is specifying just the version of the package and all default behavior is being used to
+find the package. The format of the string itself follows the exact specification of
+[node-semver](https://github.com/npm/node-semver/blob/v7.5.4/README.md). Some examples are:
+
+- `2.3.4`, `v2.3.4`, `=2.3.4` : matches exactly version `2.3.4`
+- `>2.3.4` : matches any version greater than `2.3.4`, such as `2.3.4`, `2.4.0`, and `3.0.1`
+- `>=2.3.4` : matches any version greater than or equal to `2.3.4`, such as `2.3.4`, `2.3.5`, `2.4.0`, and
+  `3.0.1`
+- `<2.3.4` : matches any version less than `2.3.4`, such as `2.3.3`, `2.2.0`, and `1.0.1`
+- `<=2.3.4` : matches any version less than or equal to `2.3.4`, such as `2.3.4`, `2.3.3`, `2.2.0`, and
+  `1.0.1
+- `~2.3.4` : matches any patch version greater than or equal to `2.3.4`, such as `2.3.4`, `2.3.5`, but not
+  `2.4.0`
+- `^2.3.4` : matches any major and minor version greater than or equal to `2.3.4`, such as `2.3.5` and
+  `2.4.0`, but not `3.0.0`
+
+See the the [node-semver README](https://github.com/npm/node-semver/blob/v7.5.4/README.md) for more examples
+and an exhaustive list of supported behavior.
+
+#### Package Dependency Object
+
+For more precise control over what version of the package to use or what source to acquire the package from,
+an object can be specified whose schema is as follows:
+
+```json
+{
+  "branch" : "",
+  "branchType" : "",
+  "optional" : false,
+  "path" : "",
+  "version" : ""
+}
+```
+
+- `branch` : **[conditionally required]** the branch for which to retrieve the package of the given version.
+  This is required for `branchType` of `internal` or `feature` in order to determine which branch it is for.
+- `branchType` : **[optional]** a designation for the type of branch from which to source the package at the
+  given version. This may be one of the following:
+  - `dev` : indicates the main development branch
+  - `feature` : indicates a long-running feature branch. The `branch` property is also required for this
+    branch type.
+  - `internal` : indicates an internal testing branch. The `branch` property is also required for this branch
+    type.
+  - `release` : **(default)** indicates the official release branch
+- `path` : **[optional]** the path to the dependency. This may be a relative path or an absolute path, but
+  packages with absolute paths cannot be published. If this is empty, the location of the dependency is
+  determined automatically by the package manager.
+- `version` : **[optionally required]** the version string designating which version or ranges of versions are
+  allowed to be used. See the [Dependency String](#package-dependency-string) for details on the formatting of
+  this property, since it uses the same formatting. This may be omitted if a `path` is specified, though the
+  package can never be published in that case.
 
 ### Package Rule
 
@@ -934,7 +968,6 @@ Defines a [Package Rule](./Concepts.md#package-rules) in a [Package](#package).
   "dependencies" : {},
   "devDependencies" : {},
   "imported" : true,
-  "keywords" : [],
   "license" : [],
   "toolDependencies" : {}
 }
@@ -947,18 +980,18 @@ Defines a [Package Rule](./Concepts.md#package-rules) in a [Package](#package).
 - `dependencies` : **[optional]** inserts or overrides `dependencies` defined on the containing
   [Package](#package) after modifications from previous rules. If this is omitted, no changes are made to the
   `dependencies` property by this rule. Each key is the name of the dependency and each value is a
-  [Dependency](#dependency).
+  [Package Dependency](#package-dependency).
 - `devDependencies` : **[optional]** inserts or overrides `devDependencies` defined on the containing
   [Package](#package) after modifications from previous rules. If this is omitted, no changes are made to the
   `devDependencies` property by this rule. Each key is the name of the dependency and each value is a
-  [Dependency](#dependency).
+  [Package Dependency](#package-dependency).
 - `license` : **[optional]** overrides the `license` property on the containing [Package](#package). If
   omitted, the license is not overridden by this rule. This entry has the same formatting requirements as the
   `license` property on the [Package](#package) object.
 - `toolDependencies` : **[optional]** inserts or overrides `toolDependencies` defined on the containing
   [Package](#package) after modifications from previous rules. If this is omitted, no changes are made to the
   `toolDependencies` property by this rule. Each key is the name of the dependency and each value is a
-  [Dependency](#dependency).
+  [Package Dependency](#package-dependency).
 
 ### Profile Condition
 
@@ -1016,7 +1049,7 @@ concept for more details on the role of a project.
   or may be a [Package](#package) object, which is essentially the contents of the [Package
   File](#package-file). This list of packages can be appended by [Project Rules](#project-rule)
   included in the list of `rules`.
-- `repository` : **[optional]** the main [Repository](#repository) where the source code for the project is
+- `repository` : **[required]** the main [Repository](#repository) where the source code for the project is
   located.
 - `rules` : **[optional]** an array of [Project Rules](#project-rule) that apply to the project. This can be
   used to adjust most of the properties on the project under certain conditions. See the [Project Rules
@@ -1025,11 +1058,11 @@ concept for more details on the role of a project.
   for projects contained within this project. Entries in this list can be relative to the project root (which
   is also the repository root) or can be absolute paths. This list of sub-projects can be appended by [Project
   Rules](#project-rule) included in the list of `rules`.
-- `toolDependencies` : **[optional]** the [Tool Dependencies](./Concepts.md#tool-dependencies) required by
+- `toolDependencies` : **[required]** the [Tool Dependencies](./Concepts.md#tool-dependencies) required by
   everything in the project. These dependencies are not inherited by consumers of any packages produced by the
   repository and are combined with [Tool Dependencies](./Concepts.md#tool-dependencies) that are defined on
   each of the packages. Each key in this object is the name of a package containing a tool and each value is a
-  [Dependency](#dependency). These tool dependencies can be overridden or appended by [Project
+  [Package Dependency](#package-dependency). These tool dependencies can be overridden or appended by [Project
   Rules](#project-rule) included in the list of `rules`.
 
 ### Project Rule
@@ -1065,7 +1098,8 @@ This is an object with the following schema:
   requirements as the entries defined in the `subProjects` property on the [Project](#project) object.
 - `toolDependencies` : **[optional]** inserts or overrides `toolDependencies` defined on the containing
   [Project](#project). If this is omitted, no changes are made to the tool dependencies. Each key in this
-  object is the name of the package providing the tool and each value is a [Dependency](#dependency).
+  object is the name of the package providing the tool and each value is a [Package
+  Dependency](#package-dependency).
 
 ### Repository
 

@@ -10,18 +10,56 @@ define_property(DIRECTORY PROPERTY BURT_PROJECT_NAME INHERITED
     FULL_DOCS "The name of the project defined in the project's burt.json file. The repository for the "
         "project must contain a burt.json file that conforms to the specification defined in "
         "${BURT_REPO_URL}/blob/main/doc/JSON.md#project-file")
-define_property(DIRECTORY PROPERTY BURT_PROJECT_DESCRIPTION INHERITED
-    BRIEF_DOCS "The description of the project defined in the project's burt.json file."
-    FULL_DOCS "The descirption of the project defined in the project's burt.json file. The repository for "
-        "the project must contain a burt.json file that conforms to the specification defined in "
-        "${BURT_REPO_URL}/blob/main/doc/JSON.md#project-file")
 define_property(DIRECTORY PROPERTY BURT_PROJECT_URL INHERITED
     BRIEF_DOCS "The repository URL of the project defined in the project's burt.json file."
     FULL_DOCS "The repository URL of the project defined in the project's burt.json file. The repository for "
         "the project must contain a burt.json file that conforms to the specification defined in "
         "${BURT_REPO_URL}/blob/main/doc/JSON.md#project-file")
 
-set(BURT_PROJECT_ROOTS "" CACHE STRING INTERNAL FORCE)
+set(BURT_PROJECT_ROOTS "" CACHE INTERNAL)
+set(BURT_PACKAGE_NAMES "" CACHE INTERNAL)
+
+function(burt_project_initialize)
+    
+    _burt_read_project_json(_project)
+
+    # See if we've seen this project before.
+    burt_json_query(_repository "${_project_json}")
+
+    # Parse out the names of the packages defined in the project. Store the names in a global list and store
+    # their directories and other metadata in variables whose name is specific to the package name.
+    burt_json_query(_packages "${_project}" GET "packages"
+        ERROR_MESSAGE "The project burt.json must have a 'packages' property.")
+    burt_json_query(_packages_size "${_packages}" LENGTH
+        ERROR_MESSAGE "The project burt.json has a malformed 'packages' property.")
+    if(_packages_size EQUAL 0)
+        message(FATAL_ERROR "The project burt.json has an empty array of packages in the 'packages' property")
+    endif()
+
+    # Loop through the packages and add the info for each package into variables.
+    math(EXPR _last_package_idx "${_packages_size}-1")
+    set(_package_names ${BURT_PACKAGE_NAMES})
+    set(_package_found FALSE)
+    foreach(_package_idx RANGE ${_last_package_idx})
+        burt_json_query(_package_json "${_packages_array_json}" GET ${_package_idx}
+            ERROR_MESSAGE "Could not get JSON from burt.json for package at index ${_package_idx}")
+        burt_json_query(_package_name "${_package_json}" GET "name"
+            ERROR_MESSAGE "Package defined in burt.json does not have a 'name' property.")
+        burt_json_query(_package_path "${_package_json}" GET "path")
+        list(APPEND _package_names ${_package_name})
+        file(TO_CMAKE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${_package_path}" _package_path)
+        set(BURT_PACKAGE_${_package_name}_PATH ${_package_path} CACHE INTERNAL)
+        set(BURT_PACKAGE_${_package_name} ${_package_json} CACHE INTERNAL)
+        if(_package_name STREQUAL PROJECT_NAME)
+            set(_package_found TRUE)
+        endif()
+    endforeach()
+    set(BURT_PACKAGE_NAMES ${_package_names} CACHE INTERNAL)
+
+    # Make sure we found the package we're supposed to be building.
+
+
+endfunction()
 
 function(burt_project)
 
@@ -37,9 +75,7 @@ function(burt_project)
         # This is a package that is essentially defined in the root of the project.
         _burt_create_package_from_json("${_package}")
         set(BURT_CURRENT_PROJECT_NAME ${CMAKE_CURRENT_PACKAGE_NAME} CACHE STRING INTERNAL FORCE)
-        set(BURT_CURRENT_PROJECT_DESCRIPTION ${CMAKE_CURRENT_PACKAGE_DESCRIPTION} CACHE STRING INTERNAL FORCE)
         set(BURT_CURRENT_PROJECT_URL ${CMAKE_CURRENT_PACKAGE_URL} CACHE STRING INTERNAL FORCE)
-        set(BURT_CURRENT_PROJECT_VERSION ${CMAKE_CURRENT_PACKAGE_VERSION})
     else()
         message(DEBUG "Using root project info for new project due to no root package")
         # Parse the values we care about for the project out of the root JSON.
