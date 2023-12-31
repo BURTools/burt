@@ -1,0 +1,12 @@
+{
+    "packages" : [
+        {
+            "modules" : [
+                "subproject_module",
+                {}
+            ]
+        },
+        "subproject_package"
+    ],
+    "subProjects": [ "subsubproject" ]
+}
