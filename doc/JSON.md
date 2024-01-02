@@ -1,4 +1,4 @@
-# Burt JSON Schema <!-- omit in toc -->
+# Burt JSON Format <!-- omit in toc -->
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -77,9 +77,9 @@ are as follows (truncated for brevity):
 
 ```json
 {
-  "packages" : [
-    "my/package"
-  ]
+    "packages" : [
+        "my/package"
+    ]
 }
 ```
 
@@ -105,14 +105,14 @@ contains a [Package](#package) such as this:
 
 ```json
 {
-  "packages" : [
-    {
-      "path" : "my/package",
-      "modules" : [
-        "my/module"
-      ]
-    }
-  ]
+    "packages" : [
+        {
+            "path" : "my/package",
+            "modules" : [
+                "my/module"
+            ]
+        }
+    ]
 }
 ```
 
@@ -124,13 +124,13 @@ It is also possible that the package is defined at the root of the [Project](./C
 
 ```json
 {
-  "packages" : [
-    {
-      "modules" : [
-        "my/module"
-      ]
-    }
-  ]
+    "packages" : [
+        {
+            "modules" : [
+                "my/module"
+            ]
+        }
+    ]
 }
 ```
 
@@ -144,9 +144,9 @@ with the following contents:
 
 ```json
 {
-  "modules" : [
-    "my/module"
-  ]
+    "modules" : [
+        "my/module"
+    ]
 }
 ```
 
@@ -164,11 +164,11 @@ may be an object, in which case the schema is as follows:
 
 ```json
 {
-  "args" : [],
-  "briefHelp" : "",
-  "examples" : [],
-  "longHelp" : "",
-  "options" : {}
+    "args" : [],
+    "briefHelp" : "",
+    "examples" : [],
+    "longHelp" : "",
+    "options" : {}
 }
 ```
 
@@ -192,11 +192,11 @@ control. If this is an object, the schema is as follows:
 
 ```json
 {
-  "enumValues" : [],
-  "help" : "",
-  "multiple" : false,
-  "optional" : false,
-  "type" : "",
+    "enumValues" : [],
+    "help" : "",
+    "multiple" : false,
+    "optional" : false,
+    "type" : "",
 }
 ```
 
@@ -221,10 +221,10 @@ automatically generate user interface for wizards. The schema for this object is
 
 ```json
 {
-  "name" : "",
-  "help" : "",
-  "multiArgCount" : -1,
-  "options" : {}
+    "name" : "",
+    "help" : "",
+    "multiArgCount" : -1,
+    "options" : {}
 }
 ```
 
@@ -247,8 +247,8 @@ is as follows:
 
 ```json
 {
-  "defaultValue" : "",
-  "quantity" : 1
+    "defaultValue" : "",
+    "quantity" : 1
 }
 ```
 
@@ -264,13 +264,13 @@ to the command. The schema for this object is as follows:
 
 ```json
 {
-  "enumValues" : [],
-  "help" : "",
-  "longSwitch" : "",
-  "multiple" : false,
-  "required" : false,
-  "shortSwitch" : "",
-  "type" : ""
+    "enumValues" : [],
+    "help" : "",
+    "longSwitch" : "",
+    "multiple" : false,
+    "required" : false,
+    "shortSwitch" : "",
+    "type" : ""
 }
 ```
 
@@ -302,8 +302,8 @@ is an enumeration that can be passed in via the command line. The schema for thi
 
 ```json
 {
-  "help" : "",
-  "value" : ""
+    "help" : "",
+    "value" : ""
 }
 ```
 
@@ -318,12 +318,12 @@ the JSON Schema specification.
 
 ```json
 {
-  "allOf" : [],
-  "anyOf" : [],
-  "hostProfile" : {},
-  "not" : [],
-  "oneOf" : [],
-  "targetProfile" : {}
+    "allOf" : [],
+    "anyOf" : [],
+    "hostProfile" : {},
+    "not" : [],
+    "oneOf" : [],
+    "targetProfile" : {}
 }
 ```
 
@@ -348,12 +348,12 @@ an [Extension](#extension).
 
 ```json
 {
-  "briefHelp" : "",
-  "context" : "",
-  "itemOption" : {},
-  "longHelp" : "",
-  "options" : {},
-  "type" : ""
+    "briefHelp" : "",
+    "context" : "",
+    "itemOption" : {},
+    "longHelp" : "",
+    "options" : {},
+    "type" : ""
 }
 ```
 
@@ -394,9 +394,9 @@ If this is an object, it should look like this:
 
 ```json
 {
-  "email" : "",
-  "name" : "",
-  "url" : ""
+    "email" : "",
+    "name" : "",
+    "url" : ""
 }
 ```
 
@@ -419,10 +419,11 @@ Burt](./Concepts.md#extensions), which are defined here on this object.
 
 ```json
 {
-  "commands" : {},
-  "functions" : {},
-  "hooks" : [],
-  "options" : {}
+    "commands" : {},
+    "functions" : {},
+    "hooks" : [],
+    "options" : {},
+    "schemas" : {}
 }
 ```
 
@@ -437,6 +438,14 @@ Burt](./Concepts.md#extensions), which are defined here on this object.
 - `options` : **[optional]** the [Options](./Concepts.md#extension-options) provided by this extension. Each
   key in this object is the name of the option as it will be passed on the command line or defined in the
   options file and each value is an [Configuration Option](#configuration-option) object.
+- `schemas` : **[optional]** an object where each value is a [JSON Schema](./Concepts.md#extension-schemas)
+  and each key is one of the following:
+  - `module` : the schema defined at this key is for the data stored in the `extended` property on a
+    [Module](#module) object belonging to this extension.
+  - `package` : the schema defined at this key is for the data stored in the `extended` property on a
+    [Package](#package) object belonging to this extension.
+  - `project` : the schema defined at this key is for the data stored in the `extended` property on a
+    [Project](#project) object belonging to this extension.
 
 ### Function
 
@@ -445,10 +454,10 @@ This object defines a function exposed by an [Extension](#extension). See the do
 
 ```json
 {
-  "args" : [],
-  "help" : "",
-  "pipe" : false,
-  "return" : {},
+    "args" : [],
+    "help" : "",
+    "pipe" : false,
+    "return" : {},
 }
 ```
 
@@ -469,8 +478,8 @@ Defines a parameter to be passed to a function as an argument or returned from a
 
 ```json
 {
-  "help" : "",
-  "schema" : ""
+    "help" : "",
+    "schema" : ""
 }
 ```
 
@@ -495,9 +504,9 @@ A specification of a section in [Help](#help).
 
 ```json
 {
-  "help" : "",
-  "indent" : false,
-  "title" : ""
+    "help" : "",
+    "indent" : false,
+    "title" : ""
 }
 ```
 
@@ -513,12 +522,12 @@ Defines a [Hook](./Concepts.md#extension-hooks) in an [Extension](#extension).
 
 ```json
 {
-  "after" : [],
-  "before" : [],
-  "callback" : "",
-  "extension" : "",
-  "function" : "",
-  "type" : ""
+    "after" : [],
+    "before" : [],
+    "callback" : "",
+    "extension" : "",
+    "function" : "",
+    "type" : ""
 }
 ```
 
@@ -556,40 +565,42 @@ examples showing the appropriate properties for each of these types of modules:
 
 ```json
 {
-  "type" : "executable",
-  "bundle" : false,
-  "dependencies" : [],
-  "deploy" : true,
-  "export" : false,
-  "name" : "",
-  "privateHeaderDirs" : [],
-  "rules" : [],
-  "sources" : [],
-  "sourceDirs" : [],
-  "sourceExcludes" : [],
-  "sourceGlobs" : [],
-  "stores" : []
+    "type" : "executable",
+    "buildCondition" : {},
+    "bundle" : false,
+    "dependencies" : [],
+    "deploy" : true,
+    "export" : false,
+    "name" : "",
+    "privateHeaderDirs" : [],
+    "rules" : [],
+    "sources" : [],
+    "sourceDirs" : [],
+    "sourceExcludes" : [],
+    "sourceGlobs" : [],
+    "stores" : []
 }
 ```
 
 ```json
 {
-  "type" : "library",
-  "bundle" : false,
-  "dependencies" : [],
-  "deploy" : true,
-  "export" : false,
-  "libraryType" : "",
-  "name" : "",
-  "privateHeaderDirs" : [],
-  "publicHeaderDirs" : [],
-  "publicHeaderExcludes" : [],
-  "publicHeaderGlobs" : [],
-  "rules" : [],
-  "sources" : [],
-  "sourceDirs" : [],
-  "sourceExcludes" : [],
-  "sourceGlobs" : [],
+    "type" : "library",
+    "buildCondition" : {},
+    "bundle" : false,
+    "dependencies" : [],
+    "deploy" : true,
+    "export" : false,
+    "libraryType" : "",
+    "name" : "",
+    "privateHeaderDirs" : [],
+    "publicHeaderDirs" : [],
+    "publicHeaderExcludes" : [],
+    "publicHeaderGlobs" : [],
+    "rules" : [],
+    "sources" : [],
+    "sourceDirs" : [],
+    "sourceExcludes" : [],
+    "sourceGlobs" : [],
 }
 ```
 
@@ -597,6 +608,8 @@ examples showing the appropriate properties for each of these types of modules:
   [bundle](./Concepts.md#bundle). This is `true` by default when the `type` is library and `false` by default
   when the `type` is `executable`. This property can be overridden by the [Module Rules](#module-rule) defined
   in the `rules` property.
+- `buildCondition` : **[optional]** the [Condition](#condition) under which the module will be built. If
+  omitted, the module will always be built when the containing [Package](#package) is built.
 - `dependencies` : **[optional]** the array of [dependencies](./Concepts.md#module-dependencies) this module
   has on other modules or library files. Each item in the array is a [Module Dependency](#module-dependency),
   which may be a string or an object for more refined behavior. This property can be appended by the [Module
@@ -712,11 +725,11 @@ the `name` property and accepting all other properties as defaults.
 
 ```json
 {
-  "deploy" : true,
-  "link" : true,
-  "name" : "",
-  "package" : "",
-  "transitive" : true
+    "deploy" : true,
+    "link" : true,
+    "name" : "",
+    "package" : "",
+    "transitive" : true
 }
 ```
 
@@ -741,23 +754,23 @@ of this feature.
 
 ```json
 {
-  "bundle" : true,
-  "condition" : {},
-  "continue" : true,
-  "dependencies" : [],
-  "deploy" : true,
-  "export" : false,
-  "libraryType" : "",
-  "privateHeaderDirs" : [],
-  "publicHeaderDirs" : [],
-  "publicHeaderExcludes" : [],
-  "publicHeaderGlobs" : [],
-  "sources" : [],
-  "sourceDirs" : [],
-  "sourceExcludes" : [],
-  "sourceGlobs" : [],
-  "stores" : [],
-  "type" : ""
+    "bundle" : true,
+    "condition" : {},
+    "continue" : true,
+    "dependencies" : [],
+    "deploy" : true,
+    "export" : false,
+    "libraryType" : "",
+    "privateHeaderDirs" : [],
+    "publicHeaderDirs" : [],
+    "publicHeaderExcludes" : [],
+    "publicHeaderGlobs" : [],
+    "sources" : [],
+    "sourceDirs" : [],
+    "sourceExcludes" : [],
+    "sourceGlobs" : [],
+    "stores" : [],
+    "type" : ""
 }
 ```
 
@@ -825,23 +838,25 @@ File](#package-file).
 
 ```json
 {
-  "author" : {},
-  "buildCondition" : {},
-  "contributors" : [], 
-  "dependencies" : {},
-  "devDependencies" : {},
-  "description" : "",
-  "extensions" : {},
-  "homepage" : "",
-  "imported" : false,
-  "keywords" : [],
-  "license" : "",
-  "modules" : [],
-  "name" : "",
-  "path" : "",
-  "rules" : [],
-  "toolDependencies" : {},
-  "version" : ""
+    "author" : {},
+    "buildCondition" : {},
+    "contributors" : [], 
+    "dependencies" : {},
+    "devDependencies" : {},
+    "description" : "",
+    "extended" : {},
+    "extension" : {},
+    "homepage" : "",
+    "imported" : false,
+    "keywords" : [],
+    "license" : "",
+    "modules" : [],
+    "name" : "",
+    "path" : "",
+    "providers" : "",
+    "rules" : [],
+    "toolDependencies" : {},
+    "version" : ""
 }
 ```
 
@@ -868,6 +883,9 @@ File](#package-file).
   Rules](#package-rule) defined in the `rules` property.
 - `description` : **[optional]** a long description of the package. This is not required, but strongly
   suggested since it will be used in package listings and for searching.
+- `extended` : **[optional]** an object whose keys are the names of [Extensions](./Concepts.md#extensions) and
+  the values are data supplied to that extension in the context of this package. The schema of this object
+  depends on this #################################################
 - `extension` : **[optional]** an [Extension](#extension) object that declares the extensions to Burt
   contained in the package. If this is omitted, the package is not treated as a Burt extension.
 - `homepage` : **[optional]** the URL to the homepage for the package (note: not the git repository, since
@@ -931,11 +949,11 @@ an object can be specified whose schema is as follows:
 
 ```json
 {
-  "branch" : "",
-  "branchType" : "",
-  "optional" : false,
-  "path" : "",
-  "version" : ""
+    "branch" : "",
+    "branchType" : "",
+    "optional" : false,
+    "path" : "",
+    "version" : ""
 }
 ```
 
@@ -963,13 +981,14 @@ Defines a [Package Rule](./Concepts.md#package-rules) in a [Package](#package).
 
 ```json
 {
-  "condition" : {},
-  "continue" : true,
-  "dependencies" : {},
-  "devDependencies" : {},
-  "imported" : true,
-  "license" : [],
-  "toolDependencies" : {}
+    "condition" : {},
+    "continue" : true,
+    "dependencies" : {},
+    "devDependencies" : {},
+    "imported" : true,
+    "license" : [],
+    "packageExtensions" : [],
+    "toolDependencies" : {}
 }
 ```
 
@@ -1002,8 +1021,8 @@ The schema for this object is as follows:
 
 ```json
 {
-  "architectures" : [],
-  "operatingSystems" : []
+    "architectures" : [],
+    "operatingSystems" : []
 }
 ```
 
@@ -1022,15 +1041,15 @@ concept for more details on the role of a project.
 
 ```json
 {
-  "author" : {},
-  "contributors" : [],
-  "homepage" : "",
-  "license" : "",
-  "packages" : [],
-  "repository" : {},
-  "rules" : [],
-  "subProjects" : [],
-  "toolDependencies" : {}
+    "author" : {},
+    "contributors" : [],
+    "homepage" : "",
+    "license" : "",
+    "packages" : [],
+    "repository" : {},
+    "rules" : [],
+    "subProjects" : [],
+    "toolDependencies" : {}
 }
 ```
 
@@ -1075,12 +1094,12 @@ This is an object with the following schema:
 
 ```json
 {
-  "condition" : {},
-  "continue" : true,
-  "license" : {},
-  "packages" : [],
-  "subProjects" : [],
-  "toolDependencies" : {}
+    "condition" : {},
+    "continue" : true,
+    "license" : {},
+    "packages" : [],
+    "subProjects" : [],
+    "toolDependencies" : {}
 }
 ```
 
@@ -1131,11 +1150,11 @@ If the [Repository](#repository) is an object value, the schema is as follows:
 
 ```json
 {
-  "featureBranchPattern" : "",
-  "mainBranch" : "",
-  "releaseBranchPattern" : "",
-  "type" : "",
-  "url" : ""
+    "featureBranchPattern" : "",
+    "mainBranch" : "",
+    "releaseBranchPattern" : "",
+    "type" : "",
+    "url" : ""
 }
 ```
 

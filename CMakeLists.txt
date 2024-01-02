@@ -9,7 +9,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/burt.json ${CMAKE_CURRENT_BINARY_DIR}/b
 list(APPEND CMAKE_CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/burt.json)
 
 # Make sure Burt is included after every project()
-set(CMAKE_PROJECT_INCLUDE "src/extensions/cmake/burt.cmake")
+set(CMAKE_PROJECT_INCLUDE src/extensions/cmake/cmake/burt.cmake)
 
 # This needs to be given the name of the package being built.
 project("burt")

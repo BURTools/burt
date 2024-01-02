@@ -10,6 +10,9 @@
         { "$ref" : "#/$defs/project" }
     ],
     "$defs" : {
+        "architectures" : {
+            "enum" : ["arm32", "arm64", "x86", "x86_64"]
+        },
         "appStore" : {
             "enum" : ["amazon", "google-play", "ios", "macos", "windows"]
         },
@@ -179,7 +182,7 @@
         },
         "commandOptionEnumValues" : {
             "type" : "array",
-            "items" : { "$ref" : "#/$defs/commandOptionValue" }
+            "items" : { "$ref" : "#/$defs/commandOptionEnumValue" }
         },
         "commandOptionType" : {
             "type" : "string",
@@ -280,7 +283,16 @@
                 "commands" : { "$ref" : "#/$defs/commands" },
                 "functions" : { "$ref" : "#/$defs/functions" },
                 "hooks" : { "$ref" : "#/$defs/hooks" },
-                "options" : { "$ref" : "#/$defs/configOptions"}
+                "options" : { "$ref" : "#/$defs/configOptions"},
+                "schemas" : { "$ref" : "#/$defs/extensionSchemas" }
+            },
+            "additionalProperties" : false
+        },
+        "extensionSchemas" : {
+            "properties" : {
+                "module" : { "$ref" : "#/$defs/jsonSchema" },
+                "package" : { "$ref" : "#/$defs/jsonSchema" },
+                "project" : { "$ref" : "#/$defs/jsonSchema" }
             },
             "additionalProperties" : false
         },
@@ -379,6 +391,10 @@
             "type" : "string", 
             "format" : "uri" 
         },
+        "jsonSchema" : {
+            "$comment" : "TODO: reference actual JSON schema schema to validate that this is correct",
+            "type" : "object"
+        },
         "keywords" : {
             "type" : "array",
             "items" : { "type" : "string", "minLength" : 1 }
@@ -402,6 +418,7 @@
         },
         "module" : {
             "properties" : {
+                "buildCondition" : { "$ref" : "#/$defs/condition" },
                 "bundle" : { "type" : "boolean" },
                 "dependencies" : { "$ref" : "#/$defs/moduleDependencies" },
                 "deploy" : { "type" : "boolean" },
@@ -628,7 +645,7 @@
             "type" : "object",
             "properties": {
                 "author" : { "$ref" : "#/$defs/contact"},
-                "contributors" : { "$ref" : "#/$defs/contributors" },
+                "contributors" : { "$ref" : "#/$defs/contacts" },
                 "homepage" : { "$ref" : "#/$defs/homepage" },
                 "license" : { "$ref" : "#/$defs/license" },
                 "packages" : { "$ref" : "#/$defs/packages" },

@@ -75,6 +75,8 @@ Control Systems](./Compatibility#version-control-systems). By default, the follo
 
 #### Extension Configuration Options
 
+#### Extension Services
+
 #### Feature Branches
 
 #### Release Branches
@@ -102,3 +104,11 @@ between. Anything that would be contextual to a particular environment uses this
 Profile to communicate that concept.
 
 ### Cross Compiling
+
+### Test Suite
+
+### Test Case
+
+### Test Fixture
+
+### Extension Schemas

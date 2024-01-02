@@ -12,21 +12,18 @@
             "name" : "burt",
             "description" : "Build Use and Release Tools - a build system for compiled programming languages",
             "version" : "0.0",
-            "plugins" : [
-                {
-                    "name" : "burt",
-                    "commands" : {
-                        "test" : {
-                            "briefHelp": "a test command",
-                            "args": {
-                                "a" : {
-                                    "type" : "integer"
-                                }
+            "extension" : {
+                "commands" : {
+                    "test" : {
+                        "briefHelp": "a test command",
+                        "args": {
+                            "a" : {
+                                "type" : "integer"
                             }
                         }
                     }
                 }
-            ]
+            }
         }
     ],
     "toolDependencies" : {
