@@ -11,8 +11,10 @@
   - [Test Properties](#test-properties)
   - [Source Properties](#source-properties)
 - [Variables](#variables)
+  - [Variable Change](#variable-change)
 - [Tests](#tests)
-- [Test Fixtures](#test-fixtures)
+  - [Test Resources](#test-resources)
+  - [Test Fixtures](#test-fixtures)
 
 ## Variable Substitutions
 
@@ -36,12 +38,17 @@ Changes](./JSON.md#property-change).
 
 The `xxxProperties` properties are objects where the key is the name of the property and the value is the
 value that will be set on the property. These changes are applied to the property with no regard to the
-inherited values. The `xxxPropertyChanges` contain [Property Changes](#property-changes) to the existing
+inherited values, and. The `xxxPropertyChanges` contain [Property Changes](#property-changes) to the existing
 values of properties. This allows string modification, list manipulation, regular expressions, etc.
 
 Strings that are used in `xxxProperties` or [Property Changes](#property-changes) can include [Generator
 Expressions](https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html) for those
-properties that support then.
+properties that support them, and [Variable Substitutions](#variable-substitutions) can be included in both
+the property names and values anywhere in `xxxProperties` or [Property Changes](#property-changes). Note that
+properties set via `xxxProperties` are handled in an indeterminate order, so [Variable
+Substitutions](#variable-substitutions) that rely on variables being set beforehand may not be reliable. If
+this case occurs, use [Property Changes](#property-changes) via the `xxxPropertyChanges` instead, since the
+order of processing is guaranteed.
 
 ### Property Changes
 
@@ -95,7 +102,7 @@ is controlled with consistently-named property values as follows:
 In all cases, the directory property's value is set to a value found in `directoryProperties` first before
 applying the changes in `directoryPropertyChanges`.
 
-These properties are found on objects to the following effects:
+These properties are found on the following objects:
 
 - [Project Extensions](./JSON.md#project-extension)
 - [Project Rule Extensions](./JSON.md#project-rule-extension)
@@ -192,8 +199,112 @@ applied and after the `properties` are processed.
 
 ## Variables
 
+This concept defines how the Burt CMake extension works with [CMake
+Variables](https://cmake.org/cmake/help/latest/manual/cmake-language.7.html#cmake-language-variables). Since
+variables are scoped to directories automatically, it makes sense to allow variable setting and modification
+on the Burt constructs directly associated with directories, [Projects](../Concepts.md#project),
+[Packages](../Concepts.md#package), and [Modules](../Concepts.md#module) and their corresponding rules.
+Changes to variables can either be overwriting or modification of existing values via the following
+consistently-named properties on objects:
 
+- `variables` : an object whose properties are the names of variables and the values are strings.
+- `variableChanges` : an array of [Variable Change](#variable-change) objects that each make changes to a
+  variable.
+
+The variables found in `variables` are set first before any `variableChanges` are processed.
+
+These properties are found on the following objects:
+
+- [Project Extensions](./JSON.md#project-extension)
+- [Project Rule Extensions](./JSON.md#project-rule-extension)
+- [Package Extensions](./JSON.md#package-extension)
+- [Package Rule Extensions](./JSON.md#package-rule-extension)
+- [Module Extensions](./JSON.md#module-extension)
+- [Module Rule Extensions](./JSON.md#module-rule-extension)
+
+For each kind of object ([Project](../Concepts.md#project), [Package](../Concepts.md#package), or
+[Module](../Concepts.md#module)), the `variables` and `variableChanges` are handled on the extension first,
+then followed by rules that have their conditions met in the order they are listed in their `rules` property.
+
+Variables are be inherited from the directory that added the subdirectory, so the `variableChanges` property
+makes it easy to modify these variables based on what is coming from the parent directory. Since this
+mechanism is built into the variables by CMake, this extension does not handle inheriting variable values from
+the extensions or rule extensions of parent constructs. See the documentation related to directory scoping in
+the CMake Language documentation section on
+[Variables](https://cmake.org/cmake/help/latest/manual/cmake-language.7.html#cmake-language-variables) for
+details.
+
+This functionality makes use of [Variable Substitutions](#variable-substitutions) for both variable names and
+variable values in both `variables` and [Variable Changes](#variable-change). Practically any string that
+affects the name or value or processing of variables in these constructs supports this functionality.
+
+### Variable Change
+
+Variable changes are transformations that can be applied to modify the existing value of a variable. The main
+concept is an `operation` that defines the nature of the change, followed by some data to go with it. The
+following kinds of changes can be made via a [Variable Change](./JSON.md#variable-change) object:
+
+- Replace the value with a new value (equivalent to using `xxxProperties`).
+- Unset the property.
+- Append or prepend a string to the current value of the property;
+  - As a string (no delimiter).
+  - As a CMake list (with the `;` delimiter).
+  - As a path list (with a `;` on Windows or `:` on other operating systems).
+- Apply a regular expression substitution to the current value of the property.
 
 ## Tests
 
-## Test Fixtures
+Burt does not address testing in its model for `burt.json`, so CMake provides all of the support itself via
+the `tests` property on the [Package Extension](./JSON.md#package-extension) object. Given that testing may
+also need to be conditional, tests can be created as part of the `tests` property on the [Package Rule
+Extension](./JSON.md) to further control under which conditions tests are executed.
+
+Tests are handled exactly like [Modules](../Concepts.md#module) are handled, with tests being added after all
+modules have been added. This is done to ensure that should a test need to use a module as input, that target
+would exist at the time of test creation. Each defined test results in a call to
+[`burt_add_test()`](./Reference.md#burt_add_test), followed by processing of [Test
+Properties](#test-properties).
+
+### Test Resources
+
+The Burt CMake extension enhances the [Resource
+Allocation](https://cmake.org/cmake/help/latest/manual/ctest.1.html#resource-allocation) for tests by allowing
+the [specification](https://cmake.org/cmake/help/latest/manual/ctest.1.html#ctest-resource-specification-file)
+of those resources to be provided in the following ways:
+
+- At the project level via the [Project Extension](./JSON.md#project-extension) via the following means:
+  - Via the `testResourceSpecification` property as an embedded object following the structure of the
+    [resource specification
+    format](https://cmake.org/cmake/help/latest/manual/ctest.1.html#ctest-resource-specification-file).
+  - Via the `testResourceSpecification` property as a path to a file on disk in the [resource
+    specification
+    format](https://cmake.org/cmake/help/latest/manual/ctest.1.html#ctest-resource-specification-file).
+- At the package level via the [Package Extension](./JSON.md#package-extension) via the following means:
+  - Using a static JSON for the resource specification using `testResourceMethod` as `json`:
+    - Via the `testResourceData` property as an embedded object following the structure of the [resource
+      specification
+      format](https://cmake.org/cmake/help/latest/manual/ctest.1.html#ctest-resource-specification-file).
+    - Via the `testResourceData` property as a path to a file on disk in the [resource
+      specification
+      format](https://cmake.org/cmake/help/latest/manual/ctest.1.html#ctest-resource-specification-file).
+  - Via execution of a test to generate the [resource specification
+    file](https://cmake.org/cmake/help/latest/manual/ctest.1.html#ctest-resource-specification-file) by
+    specifying `test` for the `testResourceMethod` property and then supplying the name of the test to execute
+    via the `testResourceData` property.
+
+When specifying the embedded or file path to a [resource specification
+file](https://cmake.org/cmake/help/latest/manual/ctest.1.html#ctest-resource-specification-file), the resource
+specification is passed to `ctest` by the Burt CMake extension via the
+[`--resource-spec-file`](https://cmake.org/cmake/help/latest/manual/ctest.1.html#cmdoption-ctest-resource-spec-file)
+command line argument. When specifying a test to run to generate this file, `ctest` handles the file itself.
+
+### Test Fixtures
+
+While it is entirely possible to handle CMake's test fixtures concept via the
+[FIXTURES_SETUP](https://cmake.org/cmake/help/latest/prop_test/FIXTURES_SETUP.html),
+[FIXTURES_CLEANUP](https://cmake.org/cmake/help/latest/prop_test/FIXTURES_CLEANUP.html), and
+[FIXTURES_REQUIRED](https://cmake.org/cmake/help/latest/prop_test/FIXTURES_REQUIRED.html) properties, the Burt
+CMake extension allows an alternative specification via the `testFixtures` property on the [Package
+Extension](./JSON.md#package-extension). This provides an explicit model fo the fixture rather than disjointed
+property values that may be more difficult to maintain. See the documentation for the [Test
+Fixture](./JSON.md#test-fixture) for more details.
