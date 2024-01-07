@@ -112,3 +112,9 @@ Profile to communicate that concept.
 ### Test Fixture
 
 ### Extension Schemas
+
+### Extension Properties
+
+### Packages as Source
+
+#### Embedded Package Source

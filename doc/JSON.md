@@ -571,6 +571,7 @@ examples showing the appropriate properties for each of these types of modules:
     "dependencies" : [],
     "deploy" : true,
     "export" : false,
+    "extended" : {},
     "name" : "",
     "privateHeaderDirs" : [],
     "rules" : [],
@@ -590,6 +591,7 @@ examples showing the appropriate properties for each of these types of modules:
     "dependencies" : [],
     "deploy" : true,
     "export" : false,
+    "extended" : {},
     "libraryType" : "",
     "name" : "",
     "privateHeaderDirs" : [],
@@ -622,6 +624,9 @@ examples showing the appropriate properties for each of these types of modules:
   to the package produced by the containing package declaration. This is `true` by default when the `type` is
   `library` and `false` by default when the `type` is `executable`. This property can be overridden by the
   [Module Rules](#module-rule) defined in the `rules` property.
+- `extended` : **[optional]** extension-specific [properties](./Concepts.md#extension-properties) for the
+  module, where the key is the package name of the extension and the value is an extension-specific object.
+  See documentation for the extension for details of what is in this object.
 - `name` : **[optional]** the name of the module. If this is omitted, the name of the root directory of the
   module is used as the name of the module. For example, if the module is located at `path/to/MyModule`, the
   name of the module would be `MyModule`.
@@ -760,6 +765,7 @@ of this feature.
     "dependencies" : [],
     "deploy" : true,
     "export" : false,
+    "extended" : {},
     "libraryType" : "",
     "privateHeaderDirs" : [],
     "publicHeaderDirs" : [],
@@ -790,6 +796,9 @@ of this feature.
 - `export` : **[optional]** if specified, overrides the value of the `export` property on the containing
   [Module](#module) and modifications from previously applied rules. If omitted, the `export` property is not
   modified.
+- `extended` : **[optional]** extension-specific [properties](./Concepts.md#extension-properties) on the rule
+  that augment the state of the extension-specific properties stored on the [Module](#module) in the
+  `extended` property. See the documentation for the extension for details on these rule properties.
 - `libraryType` : **[optional]** if specified, overrides the value of the `libraryType` property on the
   containing [Module](#module). Note that this property is ignored if the final resulting `type` property on
   the [Module](#module) after all rules are processed is not `library`.
@@ -883,9 +892,9 @@ File](#package-file).
   Rules](#package-rule) defined in the `rules` property.
 - `description` : **[optional]** a long description of the package. This is not required, but strongly
   suggested since it will be used in package listings and for searching.
-- `extended` : **[optional]** an object whose keys are the names of [Extensions](./Concepts.md#extensions) and
-  the values are data supplied to that extension in the context of this package. The schema of this object
-  depends on this #################################################
+- `extended` : **[optional]** extension-specific [properties](./Concepts.md#extension-properties) for the
+  package, where the key is the package name of the extension and the value is an extension-specific object.
+  See documentation for the extension for details of what is in this object.
 - `extension` : **[optional]** an [Extension](#extension) object that declares the extensions to Burt
   contained in the package. If this is omitted, the package is not treated as a Burt extension.
 - `homepage` : **[optional]** the URL to the homepage for the package (note: not the git repository, since
@@ -985,6 +994,7 @@ Defines a [Package Rule](./Concepts.md#package-rules) in a [Package](#package).
     "continue" : true,
     "dependencies" : {},
     "devDependencies" : {},
+    "extended" : {},
     "imported" : true,
     "license" : [],
     "packageExtensions" : [],
@@ -1004,6 +1014,9 @@ Defines a [Package Rule](./Concepts.md#package-rules) in a [Package](#package).
   [Package](#package) after modifications from previous rules. If this is omitted, no changes are made to the
   `devDependencies` property by this rule. Each key is the name of the dependency and each value is a
   [Package Dependency](#package-dependency).
+- `extended` : **[optional]** extension-specific [properties](./Concepts.md#extension-properties) on the rule
+  that augment the state of the extension-specific properties stored on the [Package](#package) in the
+  `extended` property. See the documentation for the extension for details on these rule properties.
 - `license` : **[optional]** overrides the `license` property on the containing [Package](#package). If
   omitted, the license is not overridden by this rule. This entry has the same formatting requirements as the
   `license` property on the [Package](#package) object.
@@ -1043,6 +1056,7 @@ concept for more details on the role of a project.
 {
     "author" : {},
     "contributors" : [],
+    "extended" : {},
     "homepage" : "",
     "license" : "",
     "packages" : [],
@@ -1058,6 +1072,9 @@ concept for more details on the role of a project.
 - `contributors` : **[optional]** the [Contact](#contact) for any contributors to the overall project. These
   contributors are used as the default or can be added to the contributors for any packages included in the
   project.
+- `extended` : **[optional]** extension-specific [properties](./Concepts.md#extension-properties) for the
+  project, where the key is the package name of the extension and the value is an extension-specific object.
+  See documentation for the extension for details of what is in this object.
 - `homepage` : **[optional]** a URL where the main website for the project is located. Note that this is not
   the repository URL, since that is defined in the `repository` property.
 - `license` : **[optional]** the overall license for the project. This is used as the default license for any
@@ -1107,6 +1124,9 @@ This is an object with the following schema:
   omitted, the rule is always applied.
 - `continue` : **[optional]** if the `condition` matches and this is `false`, processing will not continue to
   the next rule. If this is `true` (the default), processing will always continue to the next rule.
+- `extended` : **[optional]** extension-specific [properties](./Concepts.md#extension-properties) on the rule
+  that augment the state of the extension-specific properties stored on the [Project](#project) in the
+  `extended` property. See the documentation for the extension for details on these rule properties.
 - `license` : **[optional]** overrides the `license` property on the containing [Project](#project). If
   omitted, the license is not overridden. This entry has the same formatting requirements as the `license`
   property on the [Project](#project) object.

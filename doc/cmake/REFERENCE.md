@@ -9,9 +9,13 @@
   - [Directory Properties](#directory-properties)
     - [`BURT_PROJECT_NAME`](#burt_project_name)
     - [`BURT_PROJECT_URL`](#burt_project_url)
+  - [Target Properties](#target-properties)
 - [Variables](#variables)
+  - [Target Property Default Variables](#target-property-default-variables)
+  - [`BURT_PACKAGE_NAMES`](#burt_package_names)
   - [`BURT_PROJECT_ROOTS`](#burt_project_roots)
   - [`BURT_REPO_URL`](#burt_repo_url)
+  - [Test Property Default Variables](#test-property-default-variables)
 
 ## Functions
 
@@ -57,7 +61,11 @@ inherited by subdirectories and will always contain the name of the project that
 The URL of the project defined at the directory containing the current directory scope. This property is
 inherited by subdirectories and will always contain the URL of the project that contained it.
 
+### Target Properties
+
 ## Variables
+
+### Target Property Default Variables
 
 ### `BURT_PACKAGE_NAMES`
 
@@ -70,6 +78,10 @@ The list of directories that are roots of projects.
 ### `BURT_REPO_URL`
 
 The URL to the repository where Burt itself is defined.
+
+### Test Property Default Variables
+
+something
 
 <!--
 ### JSON
