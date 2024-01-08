@@ -2,21 +2,297 @@
 
 ## Table of Contents <!-- omit in toc -->
 
-- [Variable Substitutions](#variable-substitutions)
-- [Properties](#properties)
-  - [Property Changes](#property-changes)
-  - [Global Properties](#global-properties)
-  - [Directory Properties](#directory-properties)
-  - [Target Properties](#target-properties)
-  - [Test Properties](#test-properties)
-  - [Source Properties](#source-properties)
-- [Variables](#variables)
-  - [Variable Change](#variable-change)
-- [Tests](#tests)
-  - [Test Resources](#test-resources)
-  - [Test Fixtures](#test-fixtures)
+- [Basics](#basics)
+  - [Build System Complexity](#build-system-complexity)
+  - [Declarative vs Imperative](#declarative-vs-imperative)
+  - [Simplicity](#simplicity)
+    - [Flexibility](#flexibility)
+    - [Bare Declarative](#bare-declarative)
+    - [Declarative Custom Structure](#declarative-custom-structure)
+    - [Declarative with Customizations](#declarative-with-customizations)
+    - [Bare Imperative](#bare-imperative)
+    - [Imperative with Customizations](#imperative-with-customizations)
+    - [Legacy Imperative Code](#legacy-imperative-code)
+  - [Default Behaviors](#default-behaviors)
+    - [Module Structure](#module-structure)
+- [CMake Modules](#cmake-modules)
+- [Extending Burt CMake Functionality](#extending-burt-cmake-functionality)
+- [Integration with Burt](#integration-with-burt)
+- [Integration with CMake](#integration-with-cmake)
+- [Imperative Concepts](#imperative-concepts)
+- [Declarative Concepts](#declarative-concepts)
+  - [JSON Format Extensions](#json-format-extensions)
+  - [Variable Substitutions](#variable-substitutions)
+  - [Properties](#properties)
+    - [Property Changes](#property-changes)
+    - [Global Properties](#global-properties)
+    - [Directory Properties](#directory-properties)
+    - [Target Properties](#target-properties)
+    - [Test Properties](#test-properties)
+    - [Source Properties](#source-properties)
+  - [Variables](#variables)
+    - [Variable Change](#variable-change)
+  - [Tests](#tests)
+    - [Test Resources](#test-resources)
 
-## Variable Substitutions
+## Basics
+
+The Burt CMake extension aims to enable using [CMake](https://cmake.org) as the [build
+system](https://cmake.org/cmake/help/latest/manual/cmake-buildsystem.7.html) and [testing
+system](https://cmake.org/cmake/help/book/mastering-cmake/chapter/Testing%20With%20CMake%20and%20CTest.html)
+for a [Project](../Concepts.md#project). Using this extension, a project should have all of their needs met in
+the area of building code and executing tests using CMake in a way that leverages the Burt ecosystem and
+seamlessly integrates with other build systems, package managers, CI/CD systems, etc.
+
+The Burt CMake extension consists of two major parts:
+
+- An [extension](../Concepts.md#extensions) to Burt, which supports integration with built-in concepts in
+  Burt, such as the [`burt.json`](../JSON.md) files, [commands](../Concepts.md#extension-commands),
+  [hooks](../Concepts.md#extension-hooks) into Burt infrastructure of various kinds
+  ([targets](../Concepts.md#targets) for example), [packaging](../Concepts.md#package) and more.
+- A set of [CMake Modules](https://cmake.org/cmake/help/book/mastering-cmake/chapter/Modules.html) that
+  provide [API](#modules) for consistently defining [Targets](./Reference.md#target-functions),
+  [Tests](./Reference.md#test-functions), and functionality for
+  [extending](#extending-burt-cmake-functionality) this API with other extensions.
+
+### Build System Complexity
+
+Complexity for a project building with CMake is typically most severe in the areas where multiple platforms
+are being supported, since behavior is often very different on different platforms, and around tooling and
+cross-compiling. These issues often require a different skill set and experience to resolve than the team
+writing the software typically has. Developers are often experts on C++, but not necessarily on the
+intricacies of building apps for several different platforms (Mac, Windows, Linux, iOS, Android, WASM, etc.).
+Because of this disconnect in expertise, there are many great libraries that do not have support for various
+different platforms, because their authors simply do not have the experience or the means to test their
+libraries on those platforms.
+
+The aim of the Burt CMake extension is to capture that intersection of experience building C++ code for all of
+the desired platforms in an abstraction layer that simplifies the usage of CMake by project developers to
+target all of these platforms without the need to be experts in those platforms. For example, the Burt CMake
+extension captures all of the know-how of creating an "app" for all of the target platforms, even as the form
+of an "app" on different platforms can be _very_ different:
+
+- On iOS and MacOs, it means a [Bundle](https://en.wikipedia.org/wiki/Bundle_(macOS))
+- On Windows, it could be an [EXE](https://en.wikipedia.org/wiki/.exe) file, or it could be a [UWP
+  app](https://learn.microsoft.com/en-us/windows/uwp/get-started/universal-application-platform-guide).
+- On Android, it is an [Android Package](https://en.wikipedia.org/wiki/Apk_(file_format)).
+- WASM applications produce HTML files with embedded or linked assembly code.
+
+This illustration is meant to drive home the point that there is a large amount of variety in how that concept
+is implemented, and the goal of the Burt CMake extension is to simplify it down to simply providing an API
+that allows developers to "create an app" without caring how that app actually gets packaged and distributed
+on a particular platform. The "right thing" just happens when building for each platform.
+
+### Declarative vs Imperative
+
+CMake is driven by the [CMake Language](https://cmake.org/cmake/help/latest/manual/cmake-language.7.html) and
+does not provide a [declarative](https://en.wikipedia.org/wiki/Declarative_programming) mechanism out of the
+box, which means that CMake is inherently [imperative](https://en.wikipedia.org/wiki/Imperative_programming).
+While the language is mature and powerful, and indeed many very complicated cross-platform projects have
+successfully used CMake as their build system, it has a learning curve as developers need to learn the details
+of working with CMake's language and all of the caveats therein.
+
+The Burt CMake extension addresses this complexity in two ways:
+
+- A set of [CMake Modules](#cmake-modules) that simplifies creating targets, tests, and dealing with other
+  CMake and Burt concepts in a generic abstract way. This is the Burt CMake extension's
+  [imperative](#imperative-concepts) interface.
+- A [declarative](#declarative-concepts) mechanism via extensions of the [`burt.json`](../JSON.md) file format
+  used by Burt itself for information for its main source of information about a project.
+
+### Simplicity
+
+This section talks about conceptually how simple usage of the Burt CMake extension can be, while increasing
+complexity in certain ways to accommodate special needs. This explains how a project can use as much or as
+little of the Burt CMake extension's functionality as needed.
+
+#### Flexibility
+
+Obviously not every application and library can be built and run the same way. There are always exceptions to
+every rule and always cases where special needs have to be accounted for. The Burt CMake extension was
+designed with complete awareness of these cases, so it embraces a philosophy of using as much or as little of
+its functionality as a project needs or is able. There may be many reasons a project needs to do its own
+thing:
+
+- It's an old project that had established CMake code and does not want to start over.
+- There are platform-specific details in the project that cannot be handled in the generic way supported by
+  the Burt CMake extension.
+- Philosophically developers of a project want tight control over everything done with CMake.
+
+Whatever the reason, the goal of the Burt CMake extension is to make it possible to use as much or as little
+of it as possible to accommodate these cases where it will not be used in the fullest extent. The following
+are areas where the Burt CMake extension provides flexibility:
+
+- The [declarative](#declarative-concepts) mechanism may be used in entirety.
+- The [declarative](#declarative-concepts) and [imperative](#imperative-concepts) can be mixed if needed.
+- The [declarative](#declarative-concepts) mechanism may not be used at all and instead the
+  [imperative](#imperative-concepts) mechanisms provided by the Burt CMake extension may be used instead.
+- Targets may be defined by `CMakeLists.txt` code that uses CMake's `add_xxx` functions directly (in legacy
+  scenarios, for example), and the [`burt_add_target()`](./Reference.md#burt_add_target) function can be used
+  to initialize the Burt CMake extension's [properties](./Reference.md#properties).
+- Targets may be defined by `CMakeLists.txt` code that uses CMake's `add_xxx` functions directly and the Burt
+  CMake extension's [properties](./Reference.md#properties) set explicitly by the code.
+- Targets may be defined entirely without using Burt CMake extension functionality at all, but the resulting
+  binaries can be included into a [Package](../Concepts.md#package) after they are built (see the
+  documentation for [Foreign Built Packages](../Concepts.md#foreign-built-packages) for details).
+
+Note that these scenarios are listed in order of ease of use and consistent functionality, where the first
+option provides the most functionality with the least amount of work and the last depends entirely on the
+CMake code within the project to produce the binaries correctly on every platform and to prepare files in such
+a way that they can be packaged and reused (if a package is being distributed). In fact, the last option does
+not involve Burt in the build process of the package at all until the very end where metadata instructs Burt
+about where the binaries are located.
+
+#### Bare Declarative
+
+The simplest way to use the functionality provided by the Burt CMake extension is to use the
+[declarative](#declarative-concepts) approach to defining the build system inputs. Since the
+[`burt.json`](../JSON.md) file already exists for other purposes, the most basic cases may not even need to
+add more information to the file for the CMake extension to successfully build the code. Without adding any
+information, the base definition of [Modules](../JSON.md#module) contains all of the information to compile
+code with default compiler flags and behavior. It is convenient and suggested to build code in this way, using
+this [declarative](#declarative-concepts) mechanism with no use of the [JSON Format
+extensions](#json-format-extensions), as it is the least amount of effort, and it makes the code more portable
+and easier to support other platforms. Complicating the build system comes at the cost of compatibility with
+different platforms.
+
+A [module](../JSON.md#module) can be defined in  as simply as this:
+
+```json
+{
+    "type" : "executable",
+    "dependencies" : ["libraryX", "libraryY"]
+}
+```
+
+There are a lot of defaults being depended upon here, such as the structure of the code under the module's
+folder, but for new projects being built from scratch with the Burt CMake extension, the structure can follow
+that of the defaults for an extremely simple use case.
+
+#### Declarative Custom Structure
+
+If a project does not follow the default Burt CMake [module structure](#module-structure), customizations can
+be made easily without using any extension of the [`burt.json`](../JSON.md) file format. See the following
+example altered from the example above:
+
+```json
+{
+    "type" : "executable",
+    "dependencies" : ["libraryX", "libraryY"],
+    "privateHeaderDirs" : "include",
+    "sourceDirs" : "sources"
+}
+```
+
+This is telling Burt that there is a folder named "include" directly under the module folder that contains all
+of the local header files and there is a "sources" folder that contains all of the ".cpp" files.
+
+#### Declarative with Customizations
+
+If a project needs to make changes to [properties](#properties), [variables](#variables), etc., it can do so
+with [extensions](#json-format-extensions) to the [`burt.json`](../JSON.md) file. These changes are specific
+to CMake, as it is directly altering CMake data. An example of this is as follows;
+
+```json
+{
+    "type" : "executable",
+    "dependencies" : ["libraryX", "libraryY"],
+    "extended" : {
+        "cmake" : {
+            "targetPropertyChanges" : [
+                {
+                    "name" : "COMPILE_DEFINITIONS",
+                    "oper" : "cmake_list_append",
+                    "value" : "MY_COMPILE_FLAG"
+                }
+            ]
+        }
+    }
+}
+```
+
+This example appends a compiler definition `MY_COMPILE_FLAG` to the list of definitions already set by default
+on the target's `COMPILE_DEFINITIONS` property.
+
+#### Bare Imperative
+
+A project may be able to use the declarative mechanism for defining the majority of modules while needing to
+explicitly define a `CMakeLists.txt` for specific ones to work around limitations of the declarative
+mechanism. In this case, it is as simple as putting a `CMakeLists.txt` file in the root directory of the
+module:
+
+```cmake
+burt_add_executable(DEPENDENCIES libraryX libraryY)
+```
+
+This has exactly the same result as the simplest declarative example provided in the [Bare
+Declarative](#bare-declarative) example. In order for Burt to be aware that the module exists, it does need to
+have an entry in the `modules` property on a [Package](../JSON.md#package), but this can simply be a path to
+the root directory of the module. The Burt CMake extension will then tell Burt what the type of the module is.
+
+#### Imperative with Customizations
+
+Just like with the [Declarative with Customizations](#declarative-with-customizations), projects may include
+any manner of custom CMake code in the `CMakeLists.txt` to customize input to the `burt_xxx` functions or to
+set properties on the target after it is created. See the following example:
+
+```cmake
+burt_add_executable(NAME MyExe DEPENDENCIES libraryX libraryY)
+get_target_property(_val MyExe COMPILE_DEFINITIONS)
+list(APPEND _val MY_COMPILE_FLAG)
+set_target_properties(MyExe PROPERTIES COMPILE_DEFINITIONS ${_val})
+```
+
+This example has the same result as the example given in the [Declarative with
+Customizations](#declarative-with-customizations) section.
+
+#### Legacy Imperative Code
+
+For projects with existing `CMakeLists.txt` that are being migrated to use Burt and do not use the
+[API](#imperative-concepts) to create targets and so-forth, it is still possible to make minimal changes to
+keep the existing target definition code. This can be done by setting [variables](./Reference.md#variables)
+and [properties](./Reference.md#properties) used by the Burt CMake extension to specify certain behaviors or
+by using the [`burt_add_target()`](./Reference.md#burt_add_target) function, or any combination therein. This
+approach is only for the most advanced user that fully understands what properties and variables are needed by
+Burt to do what it needs and should be avoided if possible. An overly simplistic example of this in a
+`CMakeLists.txt` file is as follows:
+
+```cmake
+add_executable(MyExe ${_sources})
+burt_add_target(MyExe)
+set_target_properties(MyExe PROPERTIES BURT_DEPLOY TRUE)
+```
+
+This example is **not** complete, but shows how this sort of hybrid scenario would work. In this case, the
+CMake [`add_executable()`](https://cmake.org/cmake/help/latest/command/add_executable.html) is used to create
+the target and the [`burt_add_target()`](./Reference.md#burt_add_target) function is called to have the Burt
+CMake extension initialize all of the properties as it would if the
+[`burt_add_executable()`](./Reference.md#burt_add_executable) function was called. Finally, the
+[`BURT_DEPLOY`](./Reference.md#burt_deploy) property on the target is forced to `TRUE`. Note that the
+[`burt_add_target`](./Reference.md#burt_add_target) call is optional as all of the necessary `BURT_XXX`
+properties could be set on the target explicitly as needed, but using the
+[`burt_add_target()`](./Reference.md#burt_add_target) function is preferred as it will reduce the burden of
+understanding what properties to set and why.
+
+### Default Behaviors
+
+#### Module Structure
+
+## CMake Modules
+
+## Extending Burt CMake Functionality
+
+## Integration with Burt
+
+## Integration with CMake
+
+## Imperative Concepts
+
+## Declarative Concepts
+
+### JSON Format Extensions
+
+### Variable Substitutions
 
 There are a number of areas where paths are specified in the [CMake Extension JSON](./JSON.md) that may have
 paths relative to directories that cannot otherwise be determined automatically. In these cases, a placeholder
@@ -27,7 +303,7 @@ embedded variable reference that will be properly replaced with the value of the
 possible by the `cmake_language(EVAL ...)` command, which this extension uses to allow CMake to perform the
 proper substitution before passing the strings on to other CMake commands.
 
-## Properties
+### Properties
 
 This extension allows defining [CMake
 properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html) of all types applicable to
@@ -50,7 +326,7 @@ Substitutions](#variable-substitutions) that rely on variables being set beforeh
 this case occurs, use [Property Changes](#property-changes) via the `xxxPropertyChanges` instead, since the
 order of processing is guaranteed.
 
-### Property Changes
+#### Property Changes
 
 Property changes are transformations that can be applied to modify the existing value of a property. The main
 concept is an `operation` that defines the nature of the change, followed by some data to go with it. The
@@ -65,7 +341,7 @@ following kinds of changes can be made via a [Property Change](./JSON.md#propert
   - As a path list (with a `;` on Windows or `:` on other operating systems).
 - Apply a regular expression substitution to the current value of the property.
 
-### Global Properties
+#### Global Properties
 
 This concept defines how the Burt CMake extension works with [CMake Global
 Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-of-global-scope).
@@ -83,7 +359,7 @@ such a way that their values are independent of those needed by other projects. 
 [Project](../Concepts.md#project) that added the project via the `subprojects` property, if the project was
 added in that way.
 
-### Directory Properties
+#### Directory Properties
 
 This concept defines how the Burt CMake extension works with [CMake Directory
 Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-directories).
@@ -125,7 +401,7 @@ For example, `directoryProperties` on a [Project](../JSON.md#project) are not in
 properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-directories) are
 inherited.
 
-### Target Properties
+#### Target Properties
 
 This concept defines how the Burt CMake extension works with [CMake Target
 Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-targets).
@@ -156,7 +432,7 @@ mechanisms that can be used to set property values for targets more globally:
 
 See the section on [Variables](#variables) for details on how these can be set.
 
-### Test Properties
+#### Test Properties
 
 This concept defines how the Burt CMake extension works with [CMake Test
 Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-tests). Much like
@@ -179,7 +455,7 @@ Variables](./Reference.md#test-property-default-variables). Note that unlike tar
 define variables that initialize the properties for tests, so Burt supplies variables it uses to initialize
 these properties. See the [Variables](#variables) section for details on how these variables can be set.
 
-### Source Properties
+#### Source Properties
 
 This concept defines how the Burt CMake extension works with [CMake Source
 Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-source-files).
@@ -197,7 +473,7 @@ The value of the `propertyChanges` property is a list of [Property Changes](#pro
 existing value of the property. These changes are applied after the test is created and its default values
 applied and after the `properties` are processed.
 
-## Variables
+### Variables
 
 This concept defines how the Burt CMake extension works with [CMake
 Variables](https://cmake.org/cmake/help/latest/manual/cmake-language.7.html#cmake-language-variables). Since
@@ -238,7 +514,7 @@ This functionality makes use of [Variable Substitutions](#variable-substitutions
 variable values in both `variables` and [Variable Changes](#variable-change). Practically any string that
 affects the name or value or processing of variables in these constructs supports this functionality.
 
-### Variable Change
+#### Variable Change
 
 Variable changes are transformations that can be applied to modify the existing value of a variable. The main
 concept is an `operation` that defines the nature of the change, followed by some data to go with it. The
@@ -252,7 +528,7 @@ following kinds of changes can be made via a [Variable Change](./JSON.md#variabl
   - As a path list (with a `;` on Windows or `:` on other operating systems).
 - Apply a regular expression substitution to the current value of the property.
 
-## Tests
+### Tests
 
 Burt does not address testing in its model for `burt.json`, so CMake provides all of the support itself via
 the `tests` property on the [Package Extension](./JSON.md#package-extension) object. Given that testing may
@@ -265,7 +541,7 @@ would exist at the time of test creation. Each defined test results in a call to
 [`burt_add_test()`](./Reference.md#burt_add_test), followed by processing of [Test
 Properties](#test-properties).
 
-### Test Resources
+#### Test Resources
 
 The Burt CMake extension enhances the [Resource
 Allocation](https://cmake.org/cmake/help/latest/manual/ctest.1.html#resource-allocation) for tests by allowing
@@ -297,14 +573,3 @@ file](https://cmake.org/cmake/help/latest/manual/ctest.1.html#ctest-resource-spe
 specification is passed to `ctest` by the Burt CMake extension via the
 [`--resource-spec-file`](https://cmake.org/cmake/help/latest/manual/ctest.1.html#cmdoption-ctest-resource-spec-file)
 command line argument. When specifying a test to run to generate this file, `ctest` handles the file itself.
-
-### Test Fixtures
-
-While it is entirely possible to handle CMake's test fixtures concept via the
-[FIXTURES_SETUP](https://cmake.org/cmake/help/latest/prop_test/FIXTURES_SETUP.html),
-[FIXTURES_CLEANUP](https://cmake.org/cmake/help/latest/prop_test/FIXTURES_CLEANUP.html), and
-[FIXTURES_REQUIRED](https://cmake.org/cmake/help/latest/prop_test/FIXTURES_REQUIRED.html) properties, the Burt
-CMake extension allows an alternative specification via the `testFixtures` property on the [Package
-Extension](./JSON.md#package-extension). This provides an explicit model fo the fixture rather than disjointed
-property values that may be more difficult to maintain. See the documentation for the [Test
-Fixture](./JSON.md#test-fixture) for more details.

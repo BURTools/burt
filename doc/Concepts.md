@@ -118,3 +118,9 @@ Profile to communicate that concept.
 ### Packages as Source
 
 #### Embedded Package Source
+
+### Targets
+
+### Foreign Built Packages
+
+packages built without using Burt that can be consumed by projects using Burt. Package metadata, etc.

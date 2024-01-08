@@ -69,7 +69,6 @@ An object defining some additional CMake-specific data on a [Package](../JSON.md
     "directoryProperties" : {},
     "directoryPropertyChanges" : [],
     "tests" : [],
-    "testFixtures" : [],
     "testResourceData" : {},
     "testResourceMethod" : {},
     "variables" : {},
@@ -227,6 +226,17 @@ The data for the `cmake` extension in the `extended` property of a [Project Rule
  
 ### Property Change
 
+```json
+{
+    "name" : "",
+    "oper" : "",
+    "value" : ""
+}
+```
+
+- `oper` : 
+  - `cmake_list_append`
+
 ### Source
 
 ```json
@@ -268,29 +278,6 @@ An object representing a [Test](./Concepts.md#tests).
   Property](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-tests) and the
   value is the value of the property. This will overwrite the value inherited from the [Package
   Extension](#package-extension)
-
-### Test Fixture
-
-An object representing a [Test Fixture](./Concepts.md#test-fixture).
-
-```json
-{
-  "cleanupCases" : [],
-  "name" : "",
-  "setupCases" : []
-}
-```
-
-- `cleanupCases` : **[optional]** the names of test cases to be run as cleanup for the test fixture. These
-  tests will be run after all tests using the fixture have completed, whether they succeeded or not. This is
-  used to initialize the
-  [`FIXTURES_CLEANUP`](https://cmake.org/cmake/help/latest/prop_test/FIXTURES_CLEANUP.html) property on the
-  associated tests.
-- `name` : **[required]** the name of the test fixture.
-- `setupCases` : **[optional]** the names of test cases to be run as setup for the test fixture. These tests
-  will be run before all tests using the fixture. This is used to initialize the
-  [`FIXTURES_SETUP`](https://cmake.org/cmake/help/latest/prop_test/FIXTURES_SETUP.html) property on the
-  associated tests.
 
 ### Variable Change
 
