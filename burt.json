@@ -11,17 +11,19 @@
         {
             "name" : "burt",
             "description" : "Build Use and Release Tools - a build system for compiled programming languages",
+            "version" : "0.0"
+        },
+        {
+            "name" : "burt-cmake",
+            "description" : "An extension to Burt (Build Use and Release Tools) that adds support for CMake",
             "version" : "0.0",
-            "extension" : {
-                "commands" : {
-                    "test" : {
-                        "briefHelp": "a test command",
-                        "args": {
-                            "a" : {
-                                "type" : "integer"
-                            }
+            "extended" : {
+                "cmake" : {
+                    "tests" : [ 
+                        {
+                            "name" : "######################################"
                         }
-                    }
+                    ]
                 }
             }
         }

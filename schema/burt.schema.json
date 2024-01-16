@@ -11,9 +11,11 @@
     ],
     "$defs" : {
         "architectures" : {
+            "type" : "string",
             "enum" : ["arm32", "arm64", "x86", "x86_64"]
         },
         "appStore" : {
+            "type" : "string",
             "enum" : ["amazon", "google-play", "ios", "macos", "windows"]
         },
         "appStores" : {
@@ -25,6 +27,7 @@
             "minLength" : 1
         },
         "branchType" : {
+            "type" : "string",
             "enum" : [ "dev", "feature", "internal", "release" ]
         },
         "command" : {
@@ -35,6 +38,7 @@
         },
         "commands" : {
             "$comment" : "TODO: make sure the pattern is correct for command names",
+            "type" : "object",
             "patternProperties" : {
                 "[a-z0-9-_]+" : { "$ref" : "#/$defs/command" }
             },
@@ -107,6 +111,7 @@
             "additionalProperties" : false
         },
         "commandExample" : {
+            "type" : "object",
             "properties" : {
                 "help" : { "$ref" : "#/$defs/help" },
                 "multiArgCount" : { "type" : "integer" },
@@ -137,6 +142,7 @@
             "additionalProperties" : false
         },
         "commandOption" : {
+            "type" : "object",
             "properties" : {
                 "enumValues" : { "$ref" : "#/$defs/commandOptionEnumValues" },
                 "help" : { "$ref" : "#/$defs/help" },
@@ -166,6 +172,7 @@
         },
         "commandOptions" : {
             "$comment" : "TODO: need to ensure the correct pattern here",
+            "type" : "object",
             "patternProperties" : {
                 "[a-z0-9-_]" : { "$ref" : "#/$defs/commandOption" }
             },
@@ -241,9 +248,11 @@
             "additionalProperties" : false
         },
         "configOptionContext" : {
+            "type" : "string",
             "enum" : [ "both", "global", "local" ]
         },
         "configOptionType" : {
+            "type" : "string",
             "enum" : [ "array", "boolean", "group", "integer", "object", "string" ]
         },
         "contact" : {
@@ -270,7 +279,260 @@
             "type" : "string",
             "minLength" : 1
         },
+        "cmakeModuleExtension" : {
+            "type" : "object",
+            "properties" : {
+                "directoryProperties" : { "$ref" : "#/$defs/cmakeProperties" },
+                "directoryPropertyChanges" : { "$ref" : "#/$defs/cmakePropertyChanges" },
+                "sourceRules" : { "$ref" : "#/$defs/cmakeSourceRules" },
+                "targetProperties" : { "$ref" : "#/$defs/cmakeProperties" },
+                "targetPropertyChanges" : { "$ref" : "#/$defs/cmakePropertyChanges" },
+                "variables" : { "$ref" : "#/$defs/cmakeVariables" },
+                "variableChanges" : { "$ref"  : "#/$defs/cmakeVariableChanges" }
+            },
+            "additionalProperties" : false
+        },
+        "cmakeModuleRuleExtension" : {
+            "$comment" : "this is currently the same as the module extension",
+            "$ref" : "#/$defs/cmakeModuleExtension"
+        },
+        "cmakePackageExtension" : {
+            "$comment" : "TODO: add proper checking of testResourceData vs testResourceMethod",
+            "type" : "object",
+            "properties" : {
+                "directoryProperties" : { "$ref" : "#/$defs/cmakeProperties" },
+                "directoryPropertyChanges" : { "$ref" : "#/$defs/cmakePropertyChanges" },
+                "tests" : { "$ref" : "#/$defs/cmakeTests" },
+                "testResourceData" : {},
+                "testResourceMethod" : { "$ref" : "#/$defs/cmakeTestResourceMethod" },
+                "variables" : { "$ref" : "#/$defs/cmakeVariables" },
+                "variableChanges" : { "$ref" : "#/$defs/cmakeVariableChanges" }
+            },
+            "additionalProperties" : false
+        },
+        "cmakePackageRuleExtension" : {
+            "$comment" : "this is currently the same as the package extension",
+            "$ref" : "#/$defs/cmakePackageExtension"
+        },
+        "cmakeProjectExtension" : {
+            "type" : "object",
+            "properties" : {
+                "directoryProperties" : { "$ref" : "#/$defs/cmakeProperties" },
+                "directoryPropertyChanges" : { "$ref" : "#/$defs/cmakePropertyChanges" },
+                "globalProperties" : { "$ref" : "#/$defs/cmakeProperties" },
+                "testResourceSpecification" : { "$ref" : "#/$defs/cmakeTestResourceSpecification" },
+                "variables" : { "$ref" : "#/$defs/cmakeVariables" },
+                "variableChanges" : { "$ref" : "#/$defs/cmakeVariableChanges" }
+            },
+            "additionalProperties" : false
+        },
+        "cmakeProjectRuleExtension" : {
+            "$comment" : "this is currently the same as the project extension",
+            "$ref" : "#/$defs/cmakeProjectExtension"
+        },
+        "cmakeProperties" : {
+            "type" : "object",
+            "patternProperties" : {
+                "^[A-Z0-9_-]+$" : { "$ref" : "#/$defs/cmakePropertyValue" }
+            },
+            "additionalProperties" : false
+        },
+        "cmakePropertyChange" : {
+            "$comment" : "TOOD: add validation for the value and match based on the oper",
+            "type" : "object",
+            "properties" : {
+                "match" : { "format" : "regex" },
+                "name" : { "$ref" : "#/$defs/cmakePropertyName" },
+                "oper" : { "$ref" : "#/$defs/cmakePropertyChangeOperation" },
+                "value" : { "$ref" : "#/$defs/cmakePropertyValue" }
+            },
+            "required" : [ "name", "oper" ],
+            "additionalProperties" : "false"
+        },
+        "cmakePropertyChanges" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/cmakePropertyChange" }
+        },
+        "cmakePropertyChangeOperation" : {
+            "type" : "string",
+            "enum" : [
+                "cmake_list_append", 
+                "cmake_list_prepend",
+                "path_list_append",
+                "path_list_prepend",
+                "regex",
+                "reset",
+                "string_append",
+                "string_prepend",
+                "unset"
+            ]
+        },
+        "cmakePropertyName" : {
+            "type" : "string",
+            "minLength" : 1
+        },
+        "cmakePropertyValue" : {
+            "anyOf" : [
+                { "type" : "string" },
+                { "type" : "boolean" },
+                { "type" : "number" }
+            ]
+        },
+        "cmakeSourceRule" : {
+            "type" : "string",
+            "properties" : {
+                "excludeRegex" : { "$ref" : "#/$defs/cmakeSourceRuleFilter" },
+                "includePattern" : { "$ref" : "#/$defs/cmakeSourceRuleGlob" },
+                "includeRegex" : { "$ref" : "#/$defs/cmakeSourceRuleFilter" }
+            },
+            "additionalProperties" : false
+        },
+        "cmakeSourceRules" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/cmakeSourceRule" }
+        },
+        "cmakeSourceRuleFilter" : {
+            "oneOf" : [
+                { "format" : "regex" },
+                { "$ref" : "#/$defs/regularExpressionList" }
+            ]
+        },
+        "cmakeSourceRuleGlob" : {
+            "oneOf" : [
+                { "$ref" : "#/$defs/globExpression" },
+                { "$ref" : "#/$defs/globExpressionList" }
+            ]
+        },
+        "cmakeTest" : {
+            "type" : "object",
+            "properties" : {
+                "command" : { "$ref" : "#/$defs/cmakeTestCommand" },
+                "configurations" : { "$ref" : "#/$defs/cmakeTestConfigurations" },
+                "name" : { "$ref" : "#/$defs/cmakeTestName" },
+                "properties" : { "$ref" : "#/$defs/cmakeProperties" },
+                "propertyChanges" : { "$ref" : "#/$defs/cmakePropertyChanges" },
+                "rules" : { "$ref" : "#/$defs/cmakeTestRules" }
+            },
+            "required" : [ "command", "name" ],
+            "additionalProperties" : false
+        },
+        "cmakeTests" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/cmakeTest" }
+        },
+        "cmakeTestCommand" : {
+            "type" : "array",
+            "items" : { 
+                "type" : "string", 
+                "minLength" : 1
+            },
+            "minItems" : 1
+        },
+        "cmakeTestConfigurations" : {
+            "type" : "array",
+            "items" : {
+                "type" : "string",
+                "minLength" : 1
+            },
+            "minItems" : 1
+        },
+        "cmakeTestName" : {
+            "type" : "string",
+            "minLength" : 1
+        },
+        "cmakeTestResourceMethod" : {
+            "type" : "string",
+            "enum" : [ "json", "test" ]
+        },
+        "cmakeTestResourceSpecification" : {
+            "type" : "object",
+            "properties" : {
+                "local" : { "$ref" : "#/$defs/cmakeTestResourceSpecLocal" },
+                "version" : { "$ref" : "#/$defs/cmakeTestResourceSpecVersion" }
+            },
+            "required" : [ "local", "version" ],
+            "additionalProperties" : false
+        },
+        "cmakeTestResourceSpecGroup" : {
+            "type" : "object",
+            "properties" : {
+                "id" : { "$ref" : "#/$defs/cmakeTestResourceSpecGroupId" },
+                "slots" : { "type" : "integer" }
+            },
+            "required" : [ "id" ],
+            "additionalProperties" : false
+        },
+        "cmakeTestResourceSpecGroupId" : {
+            "type" : "string",
+            "pattern" : "^[a-z0-9_]+$"
+        },
+        "cmakeTestResourceSpecLocal" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/cmakeTestResourceSpecLocalItem" }
+        },
+        "cmakeTestResourceSpecLocalItem" : {
+            "type" : "object",
+            "patternProperties" : {
+                "^[a-z_][a-z0-9_]*$" : { "$ref" : "#/$defs/cmakeTestResourceSpecGroup" }
+            },
+            "additionalProperties" : false
+        },
+        "cmakeTestResourceSpecVersion" : {
+            "type" : "object",
+            "properties" : {
+                "major" : { "type" : "integer" },
+                "minor" : { "type" : "integer" }
+            },
+            "required" : [ "major", "minor" ],
+            "additionalProperties" : false
+        },
+        "cmakeTestRule" : {
+            "type" : "object",
+            "properties" : {
+                "additionalArguments" : { "$ref" : "#/$defs/cmakeTestCommand" },
+                "command" : { "$ref" : "#/$defs/cmakeTestCommand" },
+                "condition" : { "$ref" : "#/$defs/condition" },
+                "configurations" : { "$ref" : "#/$defs/cmakeTestConfigurations" },
+                "continue" : { "type" : "boolean" },
+                "properties" : { "$ref" : "#/$defs/cmakeProperties" },
+                "propertyChanges" : { "$ref" : "#/$defs/cmakePropertyChanges" }
+            },
+            "additionalProperties" : false
+        },
+        "cmakeTestRules" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/cmakeTestRule" }
+        },
+        "cmakeVariables" : {
+            "type" : "object",
+            "patternProperties" : {
+                "^[A-Z0-9_-]+$" : { "$ref" : "#/$defs/cmakePropertyValue" }
+            },
+            "additionalProperties" : false
+        },
+        "cmakeVariableChange" : {
+            "$comment" : "TOOD: add validation for the value and match based on the oper",
+            "type" : "object",
+            "properties" : {
+                "match" : { "format" : "regex" },
+                "name" : { "$ref" : "#/$defs/cmakeVariableName" },
+                "oper" : { "$ref" : "#/$defs/cmakePropertyChangeOperation" },
+                "value" : { "$ref" : "#/$defs/cmakePropertyValue" }
+            },
+            "required" : [ "name", "oper" ],
+            "additionalProperties" : "false"
+        },
+        "cmakeVariableChanges" : {
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/cmakeVariableChange" }
+        },
+        "cmakeVariableName" : {
+            "$comment" : "TODO: regex to filter valid CMake variable names",
+            "type" : "string",
+            "minLength" : 1
+        },
         "cpuArchitecture" : {
+            "type" : "string",
             "enum" : ["arm32", "arm64", "x86", "x86_64" ]
         },
         "cpuArchitectures" : {
@@ -289,6 +551,7 @@
             "additionalProperties" : false
         },
         "extensionSchemas" : {
+            "type" : "object",
             "properties" : {
                 "module" : { "$ref" : "#/$defs/jsonSchema" },
                 "package" : { "$ref" : "#/$defs/jsonSchema" },
@@ -385,6 +648,7 @@
             "items" : { "$ref" : "#/$defs/hook" }
         },
         "hookType" : {
+            "type" : "string",
             "enum" : [ "pipe", "post", "pre" ]
         },
         "homepage" : {
@@ -404,6 +668,7 @@
             "$ref" : "#/$defs/path"
         },
         "libraryType" : {
+            "type" : "string",
             "enum" : ["combined", "dynamic", "header", "shared", "static"]
         },
         "license" : {
@@ -417,12 +682,14 @@
             "pattern" : "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
         },
         "module" : {
+            "type" : "object",
             "properties" : {
                 "buildCondition" : { "$ref" : "#/$defs/condition" },
                 "bundle" : { "type" : "boolean" },
                 "dependencies" : { "$ref" : "#/$defs/moduleDependencies" },
                 "deploy" : { "type" : "boolean" },
                 "export" : { "type" : "boolean" },
+                "extended" : { "$ref" : "#/$defs/moduleExtended" },
                 "libraryType" : { "$ref" : "#/$defs/libraryType" },
                 "name" : { "$ref" : "#/$defs/moduleName" },
                 "privateHeaderDirs" : { "$ref" : "#/$defs/relativePathList" },
@@ -473,38 +740,59 @@
             "type" : "array",
             "items" : { "$ref" : "#/$defs/moduleDependency" }
         },
+        "moduleExtended" : {
+            "type" : "object",
+            "properties" : {
+                "cmake" : { "$ref" : "#/$defs/cmakeModuleExtension" }
+            },
+            "additionalProperties" : false
+        },
         "moduleName" : {
             "$comment" : "TODO: need a sensible regex here for the valid module names.",
             "type" : "string",
             "minLength" : 1
         },
         "moduleRule" : {
-            "bundle" : { "type" : "boolean" },
-            "condition" : { "$ref" : "#/$defs/condition" },
-            "continue" : { "type" : "boolean" },
-            "dependencies" : { "$ref" : "#/$defs/moduleDependencies" },
-            "deploy" : { "type" : "boolean" },
-            "export" : { "type" : "boolean" },
-            "libraryType" : { "$ref" : "#/$defs/libraryType" },
-            "privateHeaderDirs" : { "$ref" : "#/$defs/relativePathList" },
-            "publicHeaderDirs" : { "$ref" : "#/$defs/relativePathList" },
-            "publicHeaderExcludes" : { "$ref" : "#/$defs/regularExpressionList" },
-            "publicHeaderGlobs" : { "$ref" : "#/$defs/globExpressionList" },
-            "sources" : { "$ref" : "#/$defs/relativePathList" },
-            "sourceDirs" : { "$ref" : "#/$defs/relativePathList" },
-            "sourceExcludes" : { "$ref" : "#/$defs/regularExpressionList" },
-            "sourceGlobs" : { "$ref" : "#/$defs/globExpressionList" },
-            "stores" : { "$ref" : "#/$defs/appStores" },
-            "type" : { "$ref" : "#/$defs/moduleType" }
+            "type" : "object",
+            "properties" : {
+                "bundle" : { "type" : "boolean" },
+                "condition" : { "$ref" : "#/$defs/condition" },
+                "continue" : { "type" : "boolean" },
+                "dependencies" : { "$ref" : "#/$defs/moduleDependencies" },
+                "deploy" : { "type" : "boolean" },
+                "export" : { "type" : "boolean" },
+                "extended" : { "$ref" : "#/$defs/moduleRuleExtended" },
+                "libraryType" : { "$ref" : "#/$defs/libraryType" },
+                "privateHeaderDirs" : { "$ref" : "#/$defs/relativePathList" },
+                "publicHeaderDirs" : { "$ref" : "#/$defs/relativePathList" },
+                "publicHeaderExcludes" : { "$ref" : "#/$defs/regularExpressionList" },
+                "publicHeaderGlobs" : { "$ref" : "#/$defs/globExpressionList" },
+                "sources" : { "$ref" : "#/$defs/relativePathList" },
+                "sourceDirs" : { "$ref" : "#/$defs/relativePathList" },
+                "sourceExcludes" : { "$ref" : "#/$defs/regularExpressionList" },
+                "sourceGlobs" : { "$ref" : "#/$defs/globExpressionList" },
+                "stores" : { "$ref" : "#/$defs/appStores" },
+                "type" : { "$ref" : "#/$defs/moduleType" }
+            },
+            "additionalProperties" : false
         },
         "moduleRules" : {
             "type" : "array",
             "items" : { "$ref" : "#/$defs/moduleRule"}
         },
+        "moduleRuleExtended" : {
+            "type" : "object",
+            "properties" : {
+                "cmake" : { "$ref" : "#/$defs/cmakeModuleRuleExtension" }
+            },
+            "additionalProperties" : false
+        },
         "moduleType" : {
+            "type" : "string",
             "enum" : ["executable", "library"]
         },
         "operatingSystem" : {
+            "type" : "string",
             "enum" : ["linux", "macos", "windows"]
         },
         "operatingSystems" : {
@@ -520,6 +808,7 @@
                 "dependencies" : { "$ref" : "#/$defs/packageDependencies" },
                 "devDependencies" : { "$ref" : "#/$defs/packageDependencies" },
                 "description" : { "type" : "string" },
+                "extended" : { "$ref" : "#/$defs/packageExtended" },
                 "extension" : { "$ref" : "#/$defs/extension" },
                 "homepage" : { "$ref" : "#/$defs/homepage" },
                 "imported" : { "type" : "boolean" },
@@ -596,6 +885,13 @@
             ],
             "additionalProperties" : false
         },
+        "packageExtended" : {
+            "type" : "object",
+            "properties" : {
+                "cmake" : { "$ref" : "#/$defs/cmakePackageExtension" }
+            },
+            "additionalProperties" : false
+        },
         "packageName" : {
             "type" : "string",
             "minLength" : 2,
@@ -609,6 +905,7 @@
                 "continue" : { "type" : "boolean" },
                 "dependencies" : { "$ref" : "#/$defs/packageDependencies" },
                 "devDependencies" : { "$ref" : "#/$defs/packageDependencies" },
+                "extended" : { "$ref" : "#/$defs/packageRuleExtended" },
                 "imported" : { "type" : "boolean" },
                 "license" : { "$ref" : "#/$defs/license" },
                 "toolDependencies" : { "$ref" : "#/$defs/packageDependencies" }
@@ -618,6 +915,13 @@
         "packageRules" : {
             "type" : "array",
             "items" : { "$ref" : "#/$defs/packageRule" }
+        },
+        "packageRuleExtended" : {
+            "type" : "object",
+            "properties" : {
+                "cmake" : { "$ref" : "#/$defs/cmakePackageRuleExtension" }
+            },
+            "additionalProperties" : false
         },
         "packageVersion" : {
             "oneOf" : [
@@ -631,7 +935,9 @@
             "minLength" : 1
         },
         "pluginNames" : {
-            "$comment" : "List of strings of valid plugin names"
+            "$comment" : "List of strings of valid plugin names",
+            "type" : "array",
+            "items" : { "$ref" : "#/$defs/packageName" }
         },
         "profileCondition" : {
             "type" : "object",
@@ -646,6 +952,7 @@
             "properties": {
                 "author" : { "$ref" : "#/$defs/contact"},
                 "contributors" : { "$ref" : "#/$defs/contacts" },
+                "extended" : { "$ref" : "#/$defs/projectExtended" },
                 "homepage" : { "$ref" : "#/$defs/homepage" },
                 "license" : { "$ref" : "#/$defs/license" },
                 "packages" : { "$ref" : "#/$defs/packages" },
@@ -657,11 +964,19 @@
             "required" : [ "packages", "repository", "toolDependencies" ],
             "additionalProperties" : false
         },
+        "projectExtended" : {
+            "type" : "object",
+            "properties" : {
+                "cmake" : { "$ref" : "#/$defs/cmakeProjectExtension" }
+            },
+            "additionalProperties" : false
+        },
         "projectRule" : {
             "type" : "object",
             "properties" : {
                 "condition" : { "$ref" : "#/$defs/condition" },
                 "continue" : { "type" : "boolean" },
+                "extended" : { "$ref" : "#/$defs/projectRuleExtended" },
                 "license" : { "$ref" : "#/$defs/license" },
                 "packages" : { "$ref" : "#/$defs/packages" },
                 "subProjects" : { "$ref" : "#/$defs/subProjects" },
@@ -672,6 +987,13 @@
         "projectRules" : {
             "type" : "array",
             "items" : { "$ref" : "#/$defs/projectRule" }
+        },
+        "projectRuleExtended" : {
+            "type" : "object",
+            "properties" : {
+                "cmake" : { "$ref" : "#/$defs/cmakeProjectRuleExtension"}
+            },
+            "additionalProperties" : false
         },
         "qualifiedModuleName" : {
             "$comment" : "A module name with the package name that goes with it. TODO: need regex",
@@ -727,9 +1049,6 @@
         "subProjects" : {
             "type" : "array",
             "items" : { "$ref" : "#/$defs/path" }
-        },
-        "toolDependency" : {
-            "type" : "object"
         },
         "versionRange" : {
             "$comment" : "Conforms to the supported version range on https://github.com/npm/node-semver. TODO: implement actual regex for this.",

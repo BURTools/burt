@@ -4,6 +4,51 @@
 
 ## Extensions
 
+This extension allows additional information to be defined on the following entities:
+
+| Entity | Extension |
+| ------ | ----------|
+| [Module](../JSON.md#module) | [Module Extension](#module-extension) |
+| [Module Rule](../JSON.md#module-rule) | [Module Rule Extension](#module-rule-extension) |
+| [Package](../JSON.md#package) | [Package Extension](#package-extension) |
+| [Package Rule](../JSON.md#package-rule) | [Package Rule Extension](#package-rule-extension) |
+| [Project](../JSON.md#project) | [Project Extension](#project-extension)
+| [Project Rule](../JSON.md#project-rule) | [Project Rule Extension](#project-rule-extension) |
+
+Each of Entities above supports specifying this extended data via the following:
+
+```json
+{
+    "extended" : {
+        "cmake" : {}
+    }
+}
+```
+
+The `cmake` object under the `extended` property is where additional information specific to
+this extension can be defined. The value of the `cmake` property is an object whose type depends on what is
+being extended as is shown as Extension in the table above.
+
+### Module
+
+Data may be defined on a [Module](../JSON.md#module) in the `extended` property for the `cmake` extension.
+Suppose the module JSON looks like follows:
+
+```json
+{
+    "extended" : {
+        "cmake" : {}
+    }
+}
+```
+
+The `cmake` object under the `extended` property on the module is where additional information specific to
+this extension can be defined. THis object is a [Module Extension](#module-extension) object.
+
+### Module Rule
+
+Data may be defined on a [Module Rule](../JSON#module)
+
 ### Package
 
 Data may be defined on a [Package](../JSON.md#package) in the `extended` property for the `cmake` extension.
@@ -40,6 +85,10 @@ extension. Suppose the package JSON looks like follows:
 The `cmake` object under the `extended` property on the package rule is where additional information specific
 to this extension can be defined. This object is a [Package Rule Extension](#package-rule-extension) object.
 
+### Project
+
+### Project Rule
+
 ## Reference
 
 ### Module Extension
@@ -50,7 +99,7 @@ An object defining some additional CMake-specific data on a [Module](../JSON.md#
 {
     "directoryProperties" : {},
     "directoryPropertyChanges" : [],
-    "sources" : [],
+    "sourceRules" : [],
     "targetProperties" : {},
     "targetPropertyChanges" : [],
     "variables" : {},
@@ -58,7 +107,83 @@ An object defining some additional CMake-specific data on a [Module](../JSON.md#
 }
 ```
 
+- `directoryProperties` : **[optional]** an object defining values of [CMake Directory
+  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-directories)
+  for the [Module's](../Concepts.md#module) directory, where keys are the names of the directory properties
+  and values are strings to be set on the properties. Properties set using this mechanism overwrite the values
+  inherited from containing directories. See the [Directory Properties](./Concepts.md#directory-properties) concept for details.
+- `directoryPropertyChanges` : **[optional]** an array of [Property Changes](#property-change) that make
+  modifications to the values of [CMake Directory
+  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-directories) on
+  the [Module's](../Concepts.md#module) directory. These modifications alter the value specified in
+  `directoryProperties` or inherited from the parent directory, and are processed in the order they are
+  listed. See the [Directory Properties](./Concepts.md#directory-properties) concept for details.
+- `sourceRules` : **[optional]** an array of [Source Rules](#source-rule) that define the [CMake
+  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-source-files)
+  on source files in the module.
+- `targetProperties` : **[optional]** an object defining the values of [CMake Target
+  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-targets) on the
+  [target](https://cmake.org/cmake/help/book/mastering-cmake/chapter/Key%20Concepts.html#targets) created for
+  the [Module](../Concepts.md#module), where the keys are the names of the properties and the values are
+  strings to be set on the properties. Properties set using this mechanism override the default values of the
+  target properties. See the [Target Properties](./Concepts.md#target-properties) concept for details.
+- `targetPropertyChanges` : **[optional]** an array of [Property Changes](#property-change) that make
+  modifications to the values of [CMake Target
+  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-targets) on the
+  [Module's](../Concepts.md#module) target. Tehse modifications alter the value specified in
+  `targetProperties` or default values CMake sets on the target, and are processed in the order they are
+  listed. See the [Target Properties](./Concepts.md#target-properties) concept for details.
+- `variables` : **[optional]** an object defining [CMake
+  Variable](https://cmake.org/cmake/help/latest/manual/cmake-language.7.html#cmake-language-variables) values
+  to be used in the [Module](../JSON.md#module) containing this extension, where the keys are the names of
+  variables and values are the boolean, number, or string to be used as the value of the variable. Variables
+  set using this mechansim override the values of variables inherited from the parent scope of the
+  [Module](../Concepts.md#module). See the [Variables](./Concepts.md#variables) concept for details.
+- `variableChanges` : **[optional]** an array of [Variable Changes](#variable-change) that modify the values
+  of variables set in `variables` or inherited from the parent scope of the [Module](./Concepts.md#module).
+  See the [Variables](./Concepts.md#variables) for details.
+
 ### Module Rule Extension
+
+An object defining some additional CMake-specific data on a [Module Rule](../JSON.md#module-rule).
+
+```json
+{
+    "directoryProperties" : {},
+    "directoryPropertyChanges" : [],
+    "sourceRules" : [],
+    "targetProperties" : {},
+    "targetPropertyChanges" : [],
+    "variables" : {},
+    "variableChanges" : []
+}
+```
+
+- `directoryProperties` : **[optional]** an object that functions exactly like the `directoryProperties`
+  property on the [Module Extension](#module-extension), except that the property value changes dictated on
+  this object are applied when the [Module Rule](../JSON.md#module-rule) containing this extension is
+  processed.
+- `directoryPropertyChanges` : **[optional]** an array of [Property Changes](#property-change) that functions
+  exactly like the `directoryPropertyChanges` property on the [Module Extension](#module-extension), except
+  that these property changes are applied when the [Module Rule](../JSON.md#module-rule) containing this
+  extension is processed.
+- `sourceRules` : **[optional]** an array of [Source Rules](#source-rule) that functions exactly like the
+  `sourceRules` property on the [Module Extension](#module-extension), except that these rules are processed
+  when the [Module Rule](../JSON.md#module-rule) containing this extension is processed.
+- `targetProperties` : **[optional]** an object that functions exactly like the `targetProperties` property on
+  the [Module Extension](#module-extension), except that the property value changes dictated on this object
+  are applied when the [Module Rule](../JSON.md#module-rule) containing this extension is processed.
+- `targetPropertyChanges` : **[optional]** an array of [Property Changes](#property-change) that functions
+  exactly like the `targetPropertyChanges` property on the [Module Extension](#module-extension), except that
+  these property changes are applied when the [Module Rule](../JSON.md#module-rule) containing this extension
+  is processed.
+- `variables` : **[optional]** an object that functions exactly like the `vairables` property on the [Module
+  Extension](#module-extension), except that the variable value changes dictated on this object are applied
+  when the [Module Rule](../JSON.md#module-rule) containing this extension is processed.
+- `variableChanges` : **[optional]** an array of [Variable Changes](#variable-change) that functions
+  exactly like the `variableChanges` property on the [Module Extension](#module-extension), except that these
+  variable changes are applied when the [Module Rule](../JSON.md#module-rule) containing this extension is
+  processed.
 
 ### Package Extension
 
@@ -72,7 +197,7 @@ An object defining some additional CMake-specific data on a [Package](../JSON.md
     "testResourceData" : {},
     "testResourceMethod" : {},
     "variables" : {},
-    "variableChanges" : {}
+    "variableChanges" : []
 }
 ```
 
@@ -82,11 +207,7 @@ An object defining some additional CMake-specific data on a [Package](../JSON.md
   keys of this object are the names of the directory properties and their values are strings. These values are
   set after the [Project Extension](#project-extension) directory properties in `directoryProperties` are set.
   See the [Directory Properties](./Concepts.md#directory-properties) concept for details.
-- `tests` : **[optional]** an object where the keys are the names of the [Tests](./Concepts.md#tests) (which
-  must be unique) and the values are the [Test](#test) objects defining each test.
-- `testFixtures` : **[optional]** an object where the keys are the names of the [Test
-  Fixtures](./Concepts.md#test-fixtures) and the values are the [Test Fixture](#test-fixture) objects defining
-  each test fixture.
+- `tests` : **[optional]** an array of [Test](#test) objects defining each test in the package.
 - `testResourceData` : **[conditionally required]** the contents of this property depend on the value of the
   `testResourceMethod` property.
 - `testResourceMethod` : **[optional]** the method to use to define the resources available for tests. If this
@@ -97,19 +218,52 @@ An object defining some additional CMake-specific data on a [Package](../JSON.md
     File](https://cmake.org/cmake/help/latest/manual/ctest.1.html#resource-specification-file) documentation.
     Note that when embedding, the entire contents of that format are included (including the version).
   - `test` : the name of the test is stored in the `testResourceData` property as a string.
+- `variables` : **[optional]** an object defining [CMake
+  Variable](https://cmake.org/cmake/help/latest/manual/cmake-language.7.html#cmake-language-variables) values
+  to be used in the [Package](../JSON.md#package) containing this extension, where the keys are the names of
+  variables and values are the boolean, number, or string to be used as the value of the variable. Variables
+  set using this mechansim override the values of variables inherited from the parent scope of the
+  [Package](../Concepts.md#package). See the [Variables](./Concepts.md#variables) concept for details.
+- `variableChanges` : **[optional]** an array of [Variable Changes](#variable-change) that modify the values
+  of variables set in `variables` or inherited from the parent scope of the [Package](./Concepts.md#package).
+  See the [Variables](./Concepts.md#variables) for details.
 
 ### Package Rule Extension
+
+An object defining some additional CMake-specific data on a [Package Rule](../JSON.md#package-rule).
 
 ```json
 {
     "directoryProperties" : {},
     "directoryPropertyChanges" : [],
     "tests" : [],
-    "testFixtures" : [],
+    "testResourceData" : {},
+    "testResourceMethod" : {},
     "variables" : {},
-    "variableChanges" : [],
+    "variableChanges" : []
 }
 ```
+
+- `directoryProperties`: **[optional]** an object that functions exactly like the `directoryProperties`
+  property on the [Package Extension](#package-extension), except that the directory properties are set when
+  the [Package Rule](../JSON.md#package-rule) containing the extension is processed.
+- `directoryPropertyChanges`: **[optional]** an array of [Property Changes](#property-change) that functions
+  exactly like the `directoryPropertyChanges` property on the [Package Extension](#package-extension), except
+  that the changes are applied when the [Package Rule](#package-rule) containing this extension is processed.
+- `tests`: **[optional]** an array of [Tests](#test) that contains tests to be executed only when the
+  conditions are met for the [Package Rule](../JSON.md#package-rule) containing this extension.
+- `testResourceData`: **[conditionally required]** overrides the value of the `testResourceData` property on
+  the [Package Extension](#package-extension) when the conditions are met for the [Package
+  Rule](#package-rule) containing this extension.
+- `testResourceMethod`: **[optional]** overrides the value of the `testResourceMethod` property on the
+  [Package Extension](#package-extension) when the conditions are met for the [Package Rule](#package-rule)
+  containing this extension.
+- `variables`: **[optional]** an object that functions exactly like the `variables` property on the [Package
+  Extension](#package-extension), except that the variables are set when the [Package
+  Rule](../JSON.md#package-rule) containing the extension is processed.
+- `variableChanges`: **[optional]** an array of [Variable Changes](#variable-change) that functions exactly
+  like the `variableChanges` property on the [Package Extension](#package-extension), except that the changes
+  are applied when the [Package Rule](#package-rule) containing this extension is processed.
 
 ### Project Extension
 
@@ -119,6 +273,7 @@ The data for the `cmake` extension in the `extended` property of a [Project](../
 {
     "directoryProperties" : {},
     "directoryPropertyChanges" : [],
+    "globalProperties" : {},
     "testResourceSpecification" : {},
     "variables" : {},
     "variableChanges" : []
@@ -135,19 +290,10 @@ The data for the `cmake` extension in the `extended` property of a [Project](../
   the project source directory. Each entry in this array is a [Property Change](#property-change) object and
   the changes are applied in the order they are specified in this array. See the [Directory
   Properties](./Concepts.md#directory-properties) concept for details.
-- `globalPropertyChanges` : **[optional]** changes that will be made to [Global
-  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-of-global-scope)
-  when the project is processed. Each entry in the array is a [Property Change](#property-change) object.
-- `targetProperties` : **[optional]** the default [Target
-  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-targets) that
-  will be set on targets in the project. The keys of this object are the names of the properties and the
-  values are strings. These property writes are done immediately after the target is created and before
-  package and module target properties are set.
-- `testProperties` : **[optional]** the default [Test
-  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-tests) that
-  will be set on tests in the project. THe keys of this object are the names of the properties and hte values
-  are strings. These property writes are done immediately after the test is created and before the package
-  and module test properties are set.
+- `globalProperties` : **[optional]** an object defining [Global
+  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-of-global-scope),
+  where the keys are the names of the properties and the values are boolean, number, or string values given to
+  the properties. See the [Global Properties](./Concepts.md#global-properties) concept for details.
 - `testResourceSpecification` : **[optional]** the [test resource
   specification](https://cmake.org/cmake/help/latest/manual/ctest.1.html#resource-specification-file) to be
   used by default for tests in this project. This may either be a string specifying the path to the file or it
@@ -171,7 +317,7 @@ The data for the `cmake` extension in the `extended` property of a [Project Rule
     "directoryProperties" : {},
     "directoryPropertyChanges" : [],
     "globalProperties" : {},
-    "globalPropertyChanges" : [],
+    "testResourceSpecification" : {},
     "variables" : {},
     "variableChanges" : []
 }
@@ -190,30 +336,13 @@ The data for the `cmake` extension in the `extended` property of a [Project Rule
   This is different from `directoryProperties` in that it allows augmenting the value of the property rather
   than simply overwriting it. These changes are applied after the values defined in `directoryProperties` are
   set. See the [Directory Properties](./Concepts.md#directory-properties) concept for details.
-- `globalPropertyChanges` : **[optional]** an array of [Property Change](#property-change) objects defining
-  changes that will be made to the values of [Global
-  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-of-global-scope).
-  See the [Global Properties](./Concepts.md#global-properties) concept for details.
-- `targetProperties` : **[optional]** the values of [target
-  properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-targets) that
-  will be set on targets in the project by default. These property values are set immediately after the target
-  is created and overwrite any default values of the properties. The keys in this object are the names of the
-  properties and the values are strings that will be set as the property values. See the [Target
-  Properties](./Concepts.md#target-properties) concept for details.
-- `targetPropertyChanges` : **[optional]** an array of [Property Change](#property-change) objects defining
-  changes to be made to properties of targets after they are created. These changes make it possible to
-  augment the default value of properties without overwriting (string append, for example). See the [Target
-  Property](./Concepts.md#target-properties) concept for details.
-- `testProperties` : **[optional]** values of [test
-  properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-tests) that
-  will be set on test in the project by default. These property values are set immediately after the test is
-  created and overwrite any default values of the properties. The keys in this object are the names of the
-  properties and the values are strings that will be set as the property values. See the [Test
-  Properties](./Concepts.md#test-properties) concept for details.
-- `testPropertyChanges` : **[optional]** an array of [Property Change](#property-change) objects defining
-  changes to be made to properties of tests after they are created. These changes make it possible to
-  augment the default value of properties without overwriting (string append, for example). See the [Test
-  Property](./Concepts.md#test-properties) concept for details.
+- `globalProperties` : **[optional]** an object modifying the value of [Global
+  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-of-global-scope)
+  that has the same behavior as the `globalProperties` property on the [Project
+  Extension](#project-extension), except that these properties are set when the conditions are met of the
+  [Project Rule](../JSON.md#project-rule) containing this extension.
+- `testResourceSpecification` : **[optional]** overrides the `testResourceSpecification` property on the
+  [Project Extension](#project-extension).
 - `variables` : **[optional]** the [CMake
   Variables](https://cmake.org/cmake/help/latest/manual/cmake-language.7.html#cmake-language-variables) to be
   set if the containing [Project Rule](../JSON.md#project-rule) condition is met. The keys of this object are
@@ -223,28 +352,89 @@ The data for the `cmake` extension in the `extended` property of a [Project Rule
   to be applied to variables in the scope of the [Project](../JSON.md#project) should the containing [Project
   Rule](../JSON.md#project-rule) condition be met. This allows augmenting the value rather than simply
   overwriting it. See the [Variables](./Concepts.md#variables) concept for details.
- 
+
 ### Property Change
+
+An object describing a modification to the existing value of a [CMake
+Property](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#cmake-properties-7). See the
+[Property Changes](./Concepts.md#property-changes) concept for details.
 
 ```json
 {
+    "match" : "",
     "name" : "",
     "oper" : "",
     "value" : ""
 }
 ```
 
-- `oper` : 
-  - `cmake_list_append`
+- `match` : **[conditionally required]** the regular expression used to match a string to replace. This is
+  required if using the `oper` value of `regex`.
+- `name` : **[required]** the name of the property being modified.
+- `oper` : **[required]** the operation to perform on the property value.
+  - `cmake_list_append` : the value of the property is treated as a [CMake
+    List](https://cmake.org/cmake/help/latest/manual/cmake-language.7.html#cmake-language-lists) and the
+    `value` is appended to that list (i.e. with the `;` separator).
+  - `cmake_list_prepend` : the value of the property is treated as a [CMake
+    List](https://cmake.org/cmake/help/latest/manual/cmake-language.7.html#cmake-language-lists) and the
+    `value` is inserted at the beginning of that list (i.e. with the `;` separator).
+  - `path_list_append` : the value of the property is treated as a list of file paths, separated with either
+    `;` on Windows or `:` elsewhere, and the `value` is appaneded to that list.
+  - `path_list_prepend` : the value of the property is treated as a list of file paths, separated with either
+    `;` on windows or `:` elsewhere, and the `value` is inserted at the beginning of that list.
+  - `reset` : the value of the property is reset to the inherited or default value. This is only applicable to
+    [Directory](./Concepts.md#directory-properties), [Target](./Concepts.md#target-properties) and
+    [Test](./Concepts.md#test-properties) properties.
+  - `regex` : uses the regular expression in `match` to match areas of a string that will be replaced by the
+    replacement expression in `value`. See the [string(REGEX REPLACE
+    )](https://cmake.org/cmake/help/latest/command/string.html#regex-replace) command documentation for
+    details on how this works.
+  - `set` : the value of the property is set to `value`.
+  - `string_append` : the value of the property is treated as a string and the `value` is appended to that
+    string.
+  - `string_prepend` : the value of the property is treated as a string and the `value` is inserted at the
+    beginning of that string.
+  - `unset` : the value of the property is unset (`value` is not used or required).
+- `value` : **[conditionally required]** the value to use in modifying the property. How the value defined
+  here is used, or whether it is used at all, is dependent on the value of `oper`.
 
-### Source
+### Source Rule
+
+An object that enables defining
+[properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-source-files) on
+source files. See the [Source Properties](./Concepts.md#source-properties) concept for details.
 
 ```json
 {
+    "excludeRegex" : "",
+    "includePattern" : "",
+    "includeRegex" : "",
     "properties" : {},
     "propertyChanges" : []
 }
 ```
+
+- `excludeRegex` : **[optional]** a string or an array of strings defining one or more regular expressions
+  used to determine the source files for which the rule will be applied. Any source files whose paths match
+  any of these regular expressions are excluded from the rule.
+- `includePattern` : **[optional]** a string or an array of strings defining [glob
+  expressions](https://cmake.org/cmake/help/latest/command/file.html#glob-recurse) that are used to determine
+  the files to which this rule will be applied. If this is omitted, all files defined in the list of sources
+  for the [Module](../Concepts.md#module) are used.
+- `includeRegex` : **[optional]** a string or an array of strings defining defining one or more regular
+  expressions used to determine the source files for which the rule will be applied. Any source files in the
+  original list from `includePattern` must match at least one of these expressions to be included in the list.
+- `properties` : **[optional]** an object that sets the value of [Source
+  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-source-files)
+  on the matching source files, where the keys of this object are the names of the source properties and the
+  values are the booelan, number, or string value to be used as the new value of the property.
+- `propertyChanges` : **[optional]** an array of [Property Changes](#property-change) that modify the values
+  of [Source
+  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-source-files)
+  on the matching source files. These changes are processed in the order they are listed.
+
+Note that the filtering is applied in the following order: `includePattern`, `includeRegex`, and then
+`excludeRegex`.
 
 ### Test
 
@@ -252,8 +442,7 @@ An object representing a [Test](./Concepts.md#tests).
 
 ```json
 {
-    "arguments" : [],
-    "command" : "",
+    "command" : [],
     "configurations" : [],
     "name" : "",
     "properties" : {},
@@ -262,368 +451,102 @@ An object representing a [Test](./Concepts.md#tests).
 }
 ```
 
-- `arguments` : **[optional]** the list of arguments to be passed to the `command`. Any of the arguments can
-  be a [Generator
-  Expression](https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html#manual:cmake-generator-expressions(7)).
-- `command` : **[required]** the command to be executed. This may be one of the following:
-  - The name of an executable module provided by the package itself
-  - The name of an executable module in another package of the form `<package>::<module>`, where `<package>`
-    is the name of the package containing the module and `<module>` is the name of the executable module
-  - A path to a script or executable to be executed. If this is a relative path, the path is relative to the
-    directory containing the file that defines the package.
-  - A [Generator Expression](https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html#manual:cmake-generator-expressions(7)).
-- `configurations` : **[optional]** the list of configurations for which to run the test.
-- `name` : **[required]** the name of the test. This name must be unique to the package.
-- `properties` : **[optional]** the values of properties on the test, where the key is the name of the [Test
+- `command` : **[required]** an array of strings defining the command to be executed along with any arguments
+  to that command. This array is passed to the
+  [`add_test()`](https://cmake.org/cmake/help/latest/command/add_test.html) function in CMake as the`COMMAND`
+  option.
+- `configurations` : **[optional]** an array of strings defining the list of configurations for which to run
+  the test. This array is passed to the
+  [`add_test()`](https://cmake.org/cmake/help/latest/command/add_test.html) function in CMake as
+  the`CONFIGURATIONS` option.
+- `name` : **[required]** a string defining the name of the test. This name must be unique to the package.
+  This string is passed to the [`add_test()`](https://cmake.org/cmake/help/latest/command/add_test.html)
+  function in CMake as the`NAME` option.
+- `properties` : **[optional]** an object that overrides the default values of properties on the test, where
+  the key is the name of the [Test
   Property](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-tests) and the
-  value is the value of the property. This will overwrite the value inherited from the [Package
-  Extension](#package-extension)
-
-### Variable Change
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### Environment Modification
-
-An object defining an environment modification for the
-[`ENVIRONMENT_MODIFICATION`](https://cmake.org/cmake/help/latest/prop_test/ENVIRONMENT_MODIFICATION.html)
-property on a test, whose properties are as follows:
+  value is a boolean, number, or string specifying the value of the property.
+- `propertyChanges` : **[optional]** a list of [Property Changes](#property-change) that modify the values of
+  the [Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-tests) on
+  the test.
+- `rules` : **[optional]** an array of [Test Rules](#test-rule) that apply to the test. This can be used to
+  adjust most of the properties on the test under certain conditions. See the [Test Rules
+  Concept](./Concepts.md#test-rules) for more information on the use of these.
+
+### Test Rule
+
+An object that modifies a [Test](#test) based on certain conditions. See the [Test
+Rule](./Concepts.md#test-rules) for details.
 
 ```json
 {
+    "additionalArguments" : [],
+    "command" : [],
+    "condition" : {},
+    "configurations" : [],
+    "continue" : true,
+    "properties" : [],
+    "propertyChanges" : []
+}
+```
+
+- `additionalArguments` : **[optional]** an array of additional arguments that are appended to the `command`
+  specified on the [Test](#test) that contains this rule.
+- `command` : **[optional]** overrides the `command` property on the [Test](#test) that contains this rule. If
+  this is omitted, the `command` is unchanged by the rule.
+- `condition` : **[optional]** the [Condition](../JSON.md#condition) under which this rule applies if the
+  condition is true. If omitted, the rule is always applied.
+- `configurations` : **[optional]** overrides the `conditions` property of the [Test](#test) that contains
+  this rule.
+- `continue` : **[optional]** if `false`, the rules in the `rules` property on the [Test](#test) that follow
+  this rule are skipped. If omitted, the value is `true` and additional rules are also processed.
+- `properties` : **[optional]** an object defining [CMake Test
+  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-tests) on the
+  [Test](#test) containing this rule that will be set when this rule's `condition` is met, where the keys are
+  names of properties and values are boolean, number, or string values of the properties. These modifications
+  are applied after the `properties` on the [Test](#test).
+- `propertyChanges` : **[optional]** a list of [Property Changes](#property-change) that modify the [CMake Test
+  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-tests) on the
+  [Test](#test) containing this rule. These are in addition to the `propertyChanges` on the [Test](#test).
+
+### Variable Change
+
+An object describing a modification to the existing value of a [CMake
+Variable](https://cmake.org/cmake/help/latest/manual/cmake-language.7.html#cmake-language-variables). See the
+[Variable Changes](./Concepts.md#variable-changes) concept for details.
+
+```json
+{
+    "match" : "",
     "name" : "",
     "oper" : "",
     "value" : ""
 }
 ```
 
-- `name` : **[required]** the name of the environment variable to modify.
-- `oper` : **[required]** the operation to perform on the environment variable. This may be one of the
-  following:
-  - `cmake_list_append` : Appends `value` as a string to a CMake list in the `name` environment variable with
-    the `;` separator.
-  - `cmake_list_prepend` : Prepends `value` as a string to a CMake list in the `name` environment variable
-    with the `;` separator.
-  - `path_list_append` : Appends `value` as a path to a list of paths in the `name` environment variable with
-    the appropriate path separator (`;` on Windows and `:` elsewhere).
-  - `path_list_prepend` : Prepends `value` as a path to a list of paths in the `name` environment variable
-    with the appropriate path separator (`;` on Windows and `:` elsewhere).
-  - `reset` : Reset to the unmodified value, ignoring all modifications to MYVAR prior to this entry. Note
-    that this will reset the variable to the value set by ENVIRONMENT, if it was set, and otherwise to its
-    state from the rest of the CTest execution.
-  - `set` : Replaces the value of the variable `name` with the `value`.
-  - `string_append` : Appends the string `value` to the end of the `name` environment variable.
-  - `string_prepend` : Prepends the string `value` to the beginning of the `name` environment variable.
-  - `unset` : Unsets the value of the `name` environment variable.
-- `value` : **[conditionally required]** the value used to modify the environment variable.
-
-See the [documentation](https://cmake.org/cmake/help/latest/prop_test/ENVIRONMENT_MODIFICATION.html) for
-environment modification for details on this behavior. Newer versions of CMake may support new operations.
-
-### Package Extension Rule
-
-This object defines a rule to apply to a [Package Extension](#package-extension) to alter it under certain
-[Conditions](../JSON.md#condition). The properties of this object are as follows:
-
-```json
-{
-    "condition" : {},
-    "continue" : true,
-    "tests" : {},
-    "testFixtures" : {},
-    "testResources" : {}
-}
-```
-
-- `condition` : **[optional]** the [Condition](../JSON.md#condition) under which the rule will be applied. If
-  omitted, the rule is always applied.
-- `continue` : **[optional]** if the `condition` matches and this is `false`, the following rules will not be
-  processed. If this is `true` (the default), processing always continues to the next rule.
-- `tests` : **[optional]** inserts additional [Tests](#test) into the `tests` property of the containing
-  [Package Extension](#package-extension). If a name in this object is the same as the name of a test on the
-  containing [Package Extension](#package-extension), the test on the original package extension is
-  essentially overwritten. If omitted, no changes are made to the tests.
-- `testFixtures` : **[optional]** inserts additional [Test Fixtures](#test-fixture) into the `testFixtures`
-  property of the containing [Package Extension](#package-extension). If a name in this object is the same as
-  the name of a test fixture on the containing [Package Extension](#package-extension), the test fixture on
-  the original package extension is essentially overwritten. If omitted, no changes are made to the test fixtures.
-- `testResources` : **[optional]** overrides the `testResources` property on the containing [Package
-  Extension](#package-extension) by replacing with a different [Test Resources](#test-resources) object. If
-  omitted, the test resources on the [Package Extension](#package-extension) remain unchanged.
-
-### Test
-
-Defines a [Test](./Concepts.md#tests) object with the following properties:
-
-```json
-{
-    "failRegEx" : "",
-    "fixtures" : [],
-    "labels" : [],
-    "measurement" : "",
-    "passRegEx" : "",
-    "processors" : 1,
-    "processorAffinity" : false,
-    "requiredFiles" : [],
-    "resourceGroups" : [],
-    "resourceLocks" : [],
-    "rules" : [],
-    "runCondition" : {},
-    "runSerial" : false,
-    "skipRegex" : "",
-    "skipReturnCode" : 0,
-    "timeout" : 0,
-    "timeoutAfterRegex" : {},
-    "timeoutSignalGracePeriod" : 1.0,
-    "timeoutSignal" : "",
-    "willFail" : false,
-    "workingDirectory" : ""
-}
-```
-
-- `attachedFiles` : **[optional]** a list of paths to files that will be attached to the dashboard submission.
-  If these are relative paths, they are relative to the build directory for the package and target. This is
-  used to initialize the [`ATTACHED_FILES`](https://cmake.org/cmake/help/latest/prop_test/ATTACHED_FILES.html)
-  property on the test.
-- `attachedFilesOnFailure` : **[optional]** a list of paths to files that will be attached to the dashboard
-  submission if the test fails. This is used to initialize the
-  [`ATTACHED_FILES_ON_FAIL`](https://cmake.org/cmake/help/latest/prop_test/ATTACHED_FILES_ON_FAIL.html) property
-  on the test.
-- `cost` : **[optional]** the cost of the test, which is used to determine the order of execution of tests (in
-  descending order of cost). This is used to initialize the
-  [`COST`](https://cmake.org/cmake/help/latest/prop_test/COST.html) property on the test. If omitted, the
-  default cost is `0`.
-- `dependencies` : **[optional]** the list of names of tests upon which this test depends. The tests whose
-  names are listed here must finish before this test will start. This is used to initialize the
-  [DEPENDS](https://cmake.org/cmake/help/latest/prop_test/DEPENDS.html) property on the test.
-- `disabled` : **[optional]** if `true`, the test will not be executed and will be listed as "Not Run". This
-  is used to initialize the [`DISABLED`](https://cmake.org/cmake/help/latest/prop_test/DISABLED.html) property
-  on the test. If omitted, the test is not disabled.
-- `environment` : **[optional]** an object defining the environment variables with which the test will be
-  executed, where the keys are the environment variable names and the values are the string values of the
-  environment variables. This is used to initialize the
-  [`ENVIRONMENT`](https://cmake.org/cmake/help/latest/prop_test/ENVIRONMENT.html) property on the test.
-- `environmentModifications` : **[optional]** a list of all modifications to environment variables. This is
-  used to initialize the
-  [`ENVIRONMENT_MODIFICATION`](https://cmake.org/cmake/help/latest/prop_test/ENVIRONMENT_MODIFICATION.html)
-  property on the test. This is an alternative to overriding environment variables with the `environment`
-  property. The values in this list are either strings whose format is defined on the definition of the
-  [`ENVIRONMENT_MODIFICATION`](https://cmake.org/cmake/help/latest/prop_test/ENVIRONMENT_MODIFICATION.html) or
-  alternatively can use the [Environment Modification](#environment-modification) object instead. The list can
-  contain any combination of strings or [Environment Modification](#environment-modification) objects.
-- `failRegEx` : **[optional]** a regular expression used to determine whether a test failed from the output
-  of the command (STDOUT and STDERR). This is used to initialize the
-  [`FAIL_REGULAR_EXPRESSION`](https://cmake.org/cmake/help/latest/prop_test/FAIL_REGULAR_EXPRESSION.html) on
-  the test. If omitted, the output of the test is not considered in determining the failure of the test.
-- `fixtures` : **[optional]** a list of names of [Fixtures](#test-fixture) that are used by the test. This is
-  used to initialize the
-  [`FIXTURES_REQUIRED`](https://cmake.org/cmake/help/latest/prop_test/FIXTURES_REQUIRED.html) property of the
-  test. If omitted, the test requires no fixtures to run.
-- `labels` : **[optional]** a list of strings defining lables used to filter the tests. This is used to
-  initialize the [`LABELS`](https://cmake.org/cmake/help/latest/prop_test/LABELS.html) property on the test.
-- `measurement` : **[optional]** the measurement to report for the test. This is used to initialize the
-  [`MEASUREMENT`](https://cmake.org/cmake/help/latest/prop_test/MEASUREMENT.html) property of the test.
-- `passRegEx` : **[optional]** a regular expression used to dtermine whether a test passed from the output of
-  the command (STDOUT and STDERR). This is used to initialize the
-  [`PASS_REGULAR_EXPRESSION`](https://cmake.org/cmake/help/latest/prop_test/PASS_REGULAR_EXPRESSION.html)
-  property on the test. If omitted, the output is not considered in the determination of test success.
-- `processors` : **[optional]** the number of processor slots the test requires. This is used to initilize the
-  [`PROCESSORS`](https://cmake.org/cmake/help/latest/prop_test/PROCESSORS.html) property on the test. If omitted, the default value is `1`.
-- `processorAffinity` : **[optional]** if `true`, the test is given affinity to the `processors` given. This
-  is used to initialize the
-  [`PROCESSOR_AFFINITY`](https://cmake.org/cmake/help/latest/prop_test/PROCESSOR_AFFINITY.html) property on
-  the test. If omitted, the processor affinity is not guranteed for the processor slots dedicated to this
-  test.
-- `requiredFiles` : **[optional]** the list of paths to files that are required to exist for the test to run.
-  If relative, the paths are relative to the `workingDirectory` in which the test is run. This is used to
-  initialize the [`REQUIRED_FILES`](https://cmake.org/cmake/help/latest/prop_test/REQUIRED_FILES.html)
-  property on the test.
-- `resourceGroups` : **[optional]** the list of resource groups required by the test. Each entry in this list
-  is a [Test Resource Groups](#test-resource-groups) object or a string as defined in the documentation for
-  the [RESOURCE_GROUPS](https://cmake.org/cmake/help/latest/prop_test/RESOURCE_GROUPS.html) test property,
-  which this list is used to initialize.
-- `resourceLocks` : **[optional]** a list of strings defining resources that are locked by this test. Entries
-  in this list are guaranteed to cause this test to not run concurrently with another test that locks any of
-  the same resources. This is used to initialize the
-  [`RESOURCE_LOCK`](https://cmake.org/cmake/help/latest/prop_test/RESOURCE_LOCK.html) property on the test.
-- `rules` : **[optional]** the [Test Rules](#test-rule) that alter the test based on certain conditions.
-- `runCondition` : **[required]** the [Condition](../JSON.md#condition) under which the test will be run.
-  this is omitted, the test will always be run for every target.
-- `runSerial` : **[optional]** if `true`, this test will not be run in parallel with any other tests. This is
-  used to initialize the [`RUN_SERIAL`](https://cmake.org/cmake/help/latest/prop_test/RUN_SERIAL.html) on the
-  test. If omitted, the test may run in parallel with other tests.
-- `skipRegEx` : **[optional]** the regular expression used to determine whether a test is to be considered
-  skipped by matching against the output (STDOUT and STDERR) of the test. This is used to initialize the
-  [`SKIP_REGULAR_EXPRESSION`](https://cmake.org/cmake/help/latest/prop_test/SKIP_REGULAR_EXPRESSION.html)
-  property on the test. If omitted, the output of the test will not be considered in determining if the test
-  was skipped.
-- `skipReturnCode` : **[optional]** the return code of a test that is used to consider a test to be skipped.
-  This is used to initialize the
-  [`SKIP_RETURN_CODE`](https://cmake.org/cmake/help/latest/prop_test/SKIP_RETURN_CODE.html) property on the
-  test. If omitted, the return code will not be considered in determining if the test was skipped.
-- `timeout` : **[optional]** the maximum amount of time (in seconds) the test will run before it is
-  automatically terminated. This is used to initialize the
-  [`TIMEOUT`](https://cmake.org/cmake/help/latest/prop_test/TIMEOUT.html) property on the test. If omitted,
-  the test will never timeout unless CTest is run with a timeout option specified.
-- `timeoutAfterRegex` : **[optional]** changes the `timeout` of a [Test](#test) when a regular expression is
-  matched. The value of this property is a [Timeout Regex](#test-timeout-regex) object. This is used to
-  initialize the
-  [`TIMEOUT_AFTER_MATCH`](https://cmake.org/cmake/help/latest/prop_test/TIMEOUT_AFTER_MATCH.html) property of
-  the test. If omitted, the `timeout` will be used under all conditions of the test.
-- `timeoutSignalGracePeriod` : **[conditionally required]** specifies the time (in floating point seconds) to
-  wait for a test to terminate after the `timeoutSignal` is sent. This is used to initialize the
-  [`TIMEOUT_SIGNAL_GRACE_PERIOD`](https://cmake.org/cmake/help/latest/prop_test/TIMEOUT_SIGNAL_GRACE_PERIOD.html)
-  property on the test. This property is required if the `timeoutSignal` property is defined. If omitted, the
-  grace period defaults to `1.0` seconds.
-- `timeoutSignal` : **[optional]** the name of the signal to be sent to the process when the `timeout` is
-  reached. This may be `SIGINT`, `SIGQUIT`, `SIGTERM`, `SIGUSR1`, or `SIGUSR2`. This is used to initialize the
-  [`TIMEOUT_SIGNAL_NAME`](https://cmake.org/cmake/help/latest/prop_test/TIMEOUT_SIGNAL_NAME.html) on the test.
-  If omitted, no signal is sent to the process to terminate ie when the `timeout` is reached.
-- `willFail` : **[optional]** if `true`, the test is expected to fail, meaning the failure status is negated.
-  If omitted, the process is expected to succeed. This is used to initialize the
-  [`WILL_FAIL`](https://cmake.org/cmake/help/latest/prop_test/WILL_FAIL.html) property on the test.
-- `workingDirectory` : **[optional]** the working directory where the test will be executed. If this is a
-  relative path, the path is relative to the directory containing the file that defined the package. If a path
-  relative to the build directory is desired, a [Path Substitution](./Concepts.md#path-substitutions) can be
-  used instead. If this is omitted, the build directory for the package and target is used. This may also be
-  defined using a [Generator Expression](https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html#manual:cmake-generator-expressions(7)).
-
-### Test Resource Group
-
-An object that defines the resource requirements for a [Resource Groups](#test-resource-groups) definition,
-which is in turn used to initialize the
-[RESOURCE_GROUPS](https://cmake.org/cmake/help/latest/prop_test/RESOURCE_GROUPS.html) property on a test. The
-properties of this object are as follows:
-
-```json
-{
-    "count" : 1,
-    "name" : ""
-}
-```
-
-- `name` : **[required]** the name of the resource needed by the group.
-- `count` : **[required]** the quantity of slots of the resource needed by the group.
-
-### Test Resource Groups
-
-An object that defines test resource groups for the
-[RESOURCE_GROUPS](https://cmake.org/cmake/help/latest/prop_test/RESOURCE_GROUPS.html) property on a test. The
-properties on this object are as follows:
-
-```json
-{
-    "count" : 1,
-    "resources" : []
-}
-```
-
-- `count` : **[optional]** the number of groups to define. If omitted, a count of `1` is used.
-- `resources` : **[required]** the resources required by the groups. Each entry in this list is a [Test
-  Resource Group](#test-resource-group).
-
-### Test Timeout Regex
-
-An object that alters the `timeout` of a [Test](#test) when a regular expression matches a line in the output
-of the test program (STDOUT and STDERR). The properties of this object are:
-
-```json
-{
-    "regex" : "",
-    "timeout" : 1
-}
-```
-
-- `regex` : **[required]** the regular expression that will be matched against the output of the test.
-- `timeout` : **[required]** the new timout value in seconds.
+- `match` : **[conditionally required]** the regular expression used to match a string to replace. This is
+  required if using the `oper` value of `regex`.
+- `name` : **[required]** the name of the variable being modified.
+- `oper` : **[required]** the operation to perform on the variable value.
+  - `cmake_list_append` : the value of the variable is treated as a [CMake
+    List](https://cmake.org/cmake/help/latest/manual/cmake-language.7.html#cmake-language-lists) and the
+    `value` is appended to that list (i.e. with the `;` separator).
+  - `cmake_list_prepend` : the value of the variable is treated as a [CMake
+    List](https://cmake.org/cmake/help/latest/manual/cmake-language.7.html#cmake-language-lists) and the
+    `value` is inserted at the beginning of that list (i.e. with the `;` separator).
+  - `path_list_append` : the value of the variable is treated as a list of file paths, separated with either
+    `;` on Windows or `:` elsewhere, and the `value` is appaneded to that list.
+  - `path_list_prepend` : the value of the variable is treated as a list of file paths, separated with either
+    `;` on windows or `:` elsewhere, and the `value` is inserted at the beginning of that list.
+  - `regex` : uses the regular expression in `match` to match areas of a string that will be replaced by the
+    replacement expression in `value`. See the [string(REGEX REPLACE
+    )](https://cmake.org/cmake/help/latest/command/string.html#regex-replace) command documentation for
+    details on how this works.
+  - `set` : the value of the variable is set to `value`.
+  - `string_append` : the value of the variable is treated as a string and the `value` is appended to that
+    string.
+  - `string_prepend` : the value of the variable is treated as a string and the `value` is inserted at the
+    beginning of that string.
+  - `unset` : the value of the variable is unset (`value` is not used or required).
+- `value` : **[conditionally required]** the value to use in modifying the variable. How the value defined
+  here is used, or whether it is used at all, is dependent on the value of `oper`.

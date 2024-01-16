@@ -343,21 +343,63 @@ following kinds of changes can be made via a [Property Change](./JSON.md#propert
 
 #### Global Properties
 
-This concept defines how the Burt CMake extension works with [CMake Global
-Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-of-global-scope).
-Although these properties are technically global, there is a huge risk of conflict should multiple
-[Projects](../Concepts.md#project) be present in the same environment, which happens when consuming a package
-as [embedded source](../Concepts.md#embedded-package-source). As a result, this extension has support for
-scoping the global properties set via this extension to the [Project](../Concepts.md#project) that defines
-them.
+The CMake Extension has limited support setting [Global
+Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-of-global-scope) for
+a variety of reasons:
 
-The [Project Extension](./JSON.md#project-rule-extension) allows setting global properties to explicit values
-via the `globalProperties` object or by specifying a list of [Property Changes](#property-changes) in the
-`globalPropertyChanges` property. These global properties are then applied to the entire project and scoped in
-such a way that their values are independent of those needed by other projects. Note that if using
-`globalPropertyChanges`, the value of the properties being modified is the value inherited from the
-[Project](../Concepts.md#project) that added the project via the `subprojects` property, if the project was
-added in that way.
+- It's possible to have several [Projects](../Concepts.md#project) in the same environment being loaded, and
+  they may not all agree on the global property values. Since scoping is not supported for global properties
+  like it is with [CMake
+  Variables](https://cmake.org/cmake/help/latest/manual/cmake-language.7.html#cmake-language-variables), this
+  makes it impossible for one project to not conflict with another project.
+- [Global
+  Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-of-global-scope)
+  are mostly read-only, making the need to set them moot.
+
+For those [Global
+Properties](https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-of-global-scope)
+that can be set, the `globalProperties` property on the [Project Extension](./JSON.md#project-extension) can
+be used. The property values specified using this mechansim are not necessarily direct sets, because of the
+conflict between multiple projects that are being configured together (as with [Embedding Package
+Source](../Concepts.md#embedded-package-source)).
+
+The following properties can only be set by the [Project Extension](./JSON.md#project-extension) on the root
+[Project](../JSON.md#project). Any value defined in subprojects is ignored.
+
+- [AUTOGEN_SOURCE_GROUP](https://cmake.org/cmake/help/latest/prop_gbl/AUTOGEN_SOURCE_GROUP.html)
+- [AUTOGEN_TARGETS_FOLDER](https://cmake.org/cmake/help/latest/prop_gbl/ALLOW_DUPLICATE_CUSTOM_TARGETS.html)
+- [AUTOMOC_SOURCE_GROUP](https://cmake.org/cmake/help/latest/prop_gbl/ALLOW_DUPLICATE_CUSTOM_TARGETS.html)
+- [AUTOMOC_TARGETS_FOLDER](https://cmake.org/cmake/help/latest/prop_gbl/ALLOW_DUPLICATE_CUSTOM_TARGETS.html)
+- [AUTORCC_SOURCE_GROUP](https://cmake.org/cmake/help/latest/prop_gbl/ALLOW_DUPLICATE_CUSTOM_TARGETS.html)
+- [AUTOUIC_SOURCE_GROUP](https://cmake.org/cmake/help/latest/prop_gbl/ALLOW_DUPLICATE_CUSTOM_TARGETS.html)
+- [DEBUG_CONFIGURATIONS](https://cmake.org/cmake/help/latest/prop_gbl/ALLOW_DUPLICATE_CUSTOM_TARGETS.html)
+- [ECLIPSE_EXTRA_CPROJECT_CONTENTS](https://cmake.org/cmake/help/latest/prop_gbl/ALLOW_DUPLICATE_CUSTOM_TARGETS.html)
+- [ECLIPSE_EXTRA_NATURES](https://cmake.org/cmake/help/latest/prop_gbl/ALLOW_DUPLICATE_CUSTOM_TARGETS.html)
+- [GLOBAL_DEPENDS_NO_CYCLES](https://cmake.org/cmake/help/latest/prop_gbl/ALLOW_DUPLICATE_CUSTOM_TARGETS.html)
+- [PREDEFINED_TARGETS_FOLDER](https://cmake.org/cmake/help/latest/prop_gbl/ALLOW_DUPLICATE_CUSTOM_TARGETS.html)
+- [USE_FOLDERS](https://cmake.org/cmake/help/latest/prop_gbl/ALLOW_DUPLICATE_CUSTOM_TARGETS.html)
+- [XCODE_EMIT_EFFECTIVE_PLATFORM_NAME](https://cmake.org/cmake/help/latest/prop_gbl/ALLOW_DUPLICATE_CUSTOM_TARGETS.html)
+
+The following properties have property-specific behavior:
+
+- [ALLOW_DUPLICATE_CUSTOM_TARGETS](https://cmake.org/cmake/help/latest/prop_gbl/ALLOW_DUPLICATE_CUSTOM_TARGETS.html)
+  : any value other than a valid [true constant](https://cmake.org/cmake/help/latest/command/if.html#constant)
+  is ignored. It is only possible to enable this behavior, not disable it.
+
+The following properties can't be set directly, but have alternate means of being set:
+
+- [JOB_POOLS](https://cmake.org/cmake/help/latest/prop_gbl/ALLOW_DUPLICATE_CUSTOM_TARGETS.html) can be set by
+  setting the
+  [CMAKE_JOB_POOLS](https://cmake.org/cmake/help/latest/variable/CMAKE_JOB_POOLS.html#variable:CMAKE_JOB_POOLS)
+  variable.
+
+Any property not listed here is ignored, most likely due to that property being read-only or because the
+property is expected to be set by
+[toolchains](https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html) or by the Burt CMake
+extension itself.
+
+Note that no global properties can be set to a complex value, so there is no support for [Property
+Changes](#property-changes) for global properties.
 
 #### Directory Properties
 
@@ -520,13 +562,13 @@ Variable changes are transformations that can be applied to modify the existing 
 concept is an `operation` that defines the nature of the change, followed by some data to go with it. The
 following kinds of changes can be made via a [Variable Change](./JSON.md#variable-change) object:
 
-- Replace the value with a new value (equivalent to using `xxxProperties`).
-- Unset the property.
-- Append or prepend a string to the current value of the property;
+- Replace the value with a new value (equivalent to using `variables`).
+- Unset the value.
+- Append or prepend a string to the current value of the variable;
   - As a string (no delimiter).
   - As a CMake list (with the `;` delimiter).
   - As a path list (with a `;` on Windows or `:` on other operating systems).
-- Apply a regular expression substitution to the current value of the property.
+- Apply a regular expression substitution to the current value of the variable.
 
 ### Tests
 
@@ -573,3 +615,6 @@ file](https://cmake.org/cmake/help/latest/manual/ctest.1.html#ctest-resource-spe
 specification is passed to `ctest` by the Burt CMake extension via the
 [`--resource-spec-file`](https://cmake.org/cmake/help/latest/manual/ctest.1.html#cmdoption-ctest-resource-spec-file)
 command line argument. When specifying a test to run to generate this file, `ctest` handles the file itself.
+
+#### Test Rules
+
